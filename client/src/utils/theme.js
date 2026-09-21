@@ -100,9 +100,9 @@ export function applyTenantTheme(tenantConfig = {}, tenantInfo = {}) {
   // Update Document Title with Institute Name
   const instituteName = cfg.instituteName || tenantInfo.tenantName || tenantInfo.name;
   if (instituteName && instituteName.trim() !== '') {
-    document.title = `${instituteName.trim()} | isomorphic Portal`;
+    document.title = `${instituteName.trim()} | Isomorphic Portal`;
   } else {
-    document.title = 'isomorphic Portal';
+    document.title = 'Isomorphic Portal';
   }
 }
 

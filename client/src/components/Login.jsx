@@ -829,7 +829,7 @@ export default function Login({ onLoginSuccess, showToast }) {
       {/* Powered by Isomorphic Signature */}
       <div className="relative z-10 mt-6 flex items-center justify-center select-none animate-in fade-in duration-300">
         <a 
-          href="https://isomorphic.github.io"
+          href="https://isomorphicai.github.io"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono tracking-wide transition-all shadow-2xs backdrop-blur-xs border hover:scale-105 active:scale-95 cursor-pointer group no-underline"
