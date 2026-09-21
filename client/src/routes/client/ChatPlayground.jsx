@@ -144,7 +144,13 @@ export default function ChatPlayground({
   const [isListening, setIsListening] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sessionId, setSessionId] = useState(() => `sess_pg_${Date.now()}_${Math.random().toString(36).substr(2, 7)}`);
   const chatEndRef = useRef(null);
+
+  // Reset session when bot or tenant changes
+  const resetSession = () => {
+    setSessionId(`sess_pg_${Date.now()}_${Math.random().toString(36).substr(2, 7)}`);
+  };
 
   // Fetch tenants
   useEffect(() => {
@@ -212,6 +218,7 @@ export default function ChatPlayground({
 
   useEffect(() => {
     if (activeBotId && activeTenantId) {
+      resetSession();
       const curBot = availableBots.find(b => (b.botId === activeBotId || b.code === activeBotId));
       setMessages([
         {
@@ -252,12 +259,16 @@ export default function ChatPlayground({
           query: userMsg.content,
           tenantId: activeTenantId,
           botId: activeBotId,
-          history: currentHistory.slice(-6)
+          sessionId: sessionId,
+          history: currentHistory.slice(-10)
         })
       });
       const data = await res.json();
 
       if (res.ok) {
+        if (data.sessionId && data.sessionId !== sessionId) {
+          setSessionId(data.sessionId);
+        }
         setMessages(prev => [...prev, {
           id: Date.now().toString() + '-reply',
           role: 'assistant',

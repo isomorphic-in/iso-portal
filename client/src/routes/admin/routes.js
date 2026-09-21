@@ -3,8 +3,9 @@ import SystemSettings from './SystemSettings';
 import Analytics from './Analytics';
 import Ingestion from './Ingestion';
 import ConversationHistory from './ConversationHistory';
+import Grievances from './Grievances';
 import ChatPlayground from '../client/ChatPlayground';
-import { Building2, BarChart3, Database, MessageSquare, History, Shield } from 'lucide-react';
+import { Building2, BarChart3, Database, MessageSquare, History, Shield, Ticket } from 'lucide-react';
 
 export const adminRoutes = [
   {
@@ -20,6 +21,12 @@ export const adminRoutes = [
     icon: Shield,
     component: SystemSettings,
     superAdminOnly: true
+  },
+  {
+    path: 'grievances',
+    label: 'Grievances & Tickets',
+    icon: Ticket,
+    component: Grievances
   },
   {
     path: 'analytics',

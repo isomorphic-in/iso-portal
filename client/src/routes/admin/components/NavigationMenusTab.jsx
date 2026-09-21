@@ -477,6 +477,7 @@ export default function NavigationMenusTab({ showToast }) {
                     onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
                     className="w-full bg-iso-bg border border-iso-border focus:border-iso-accent rounded-sm px-3 py-2 text-xs outline-none cursor-pointer"
                   >
+                    <option value="Ticket">Ticket (Grievances & Tickets)</option>
                     <option value="Building2">Building2 (Tenants)</option>
                     <option value="BarChart3">BarChart3 (Analytics)</option>
                     <option value="Database">Database (Ingestion)</option>

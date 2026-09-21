@@ -28,7 +28,8 @@ const DEFAULT_TENANT_CONFIG = {
   logoSmallUrl: "",
   faviconUrl: "",
   showIntegrationTypeInChatHistory: true,
-  showJobQueueNotificationIcon: true
+  showJobQueueNotificationIcon: true,
+  enableGrievanceSystem: true
 };
 
 export default function TenantModal({
@@ -577,6 +578,13 @@ export default function TenantModal({
                   <p className="text-[11px] text-iso-textMuted font-mono">Displays ingestion processing icon in navbar.</p>
                 </div>
                 <input type="checkbox" checked={Boolean(cfg.showJobQueueNotificationIcon)} onChange={(e) => updateConfigField("showJobQueueNotificationIcon", e.target.checked)} className="w-4 h-4 accent-iso-primary cursor-pointer" />
+              </div>
+              <div className="p-4 bg-iso-bg border border-iso-border rounded-sm flex items-center justify-between">
+                <div>
+                  <h4 className="text-xs font-bold text-iso-primary">Enable AI Grievance &amp; Student Ticket System</h4>
+                  <p className="text-[11px] text-iso-textMuted font-mono">Enables automatic grievance ticket generation in student chatbot and activates the Grievances &amp; Tickets portal menu.</p>
+                </div>
+                <input type="checkbox" checked={cfg.enableGrievanceSystem !== false} onChange={(e) => updateConfigField("enableGrievanceSystem", e.target.checked)} className="w-4 h-4 accent-iso-primary cursor-pointer" />
               </div>
             </div>
           )}

@@ -352,8 +352,16 @@ export default function App() {
     if (routeObj?.superAdminOnly && !isGlobalAdmin) return false;
     if (isGlobalAdmin) return true;
 
+    const tenantConfig = selectedTenant?.tenantConfig || currentUser?.tenantConfig || {};
+    const isGrievanceEnabled = tenantConfig.enableGrievanceSystem !== false;
+
+    if (path === 'grievances' && !isGrievanceEnabled && !isGlobalAdmin) {
+      return false;
+    }
+
     // Check allowedMenus with alias fallbacks
     if (allowed.includes(path)) return true;
+    if (path === 'grievances' && isGrievanceEnabled && (allowed.length === 0 || allowed.includes('grievances') || allowed.includes('tickets') || allowed.includes('grievance') || allowed.includes('complaints'))) return true;
     if (path === 'ingestion' && (allowed.length === 0 || allowed.includes('ingestion') || allowed.includes('knowledge') || allowed.includes('ingestionManager') || allowed.includes('data') || allowed.includes('crawler') || allowed.includes('overview') || allowed.includes('documents'))) return true;
     if (path === 'analytics' && (allowed.length === 0 || allowed.includes('analytics') || allowed.includes('botAnalytics') || allowed.includes('overview'))) return true;
     if (path === 'conversations' && (allowed.length === 0 || allowed.includes('conversations') || allowed.includes('conversationHistory'))) return true;
@@ -361,7 +369,7 @@ export default function App() {
     if (path === 'playground' && (allowed.length === 0 || allowed.includes('chat') || allowed.includes('playground'))) return true;
 
     // Fallback: grant standard tenant features
-    return ['analytics', 'ingestion', 'conversations', 'chat'].includes(path);
+    return [isGrievanceEnabled ? 'grievances' : null, 'analytics', 'ingestion', 'conversations', 'chat'].filter(Boolean).includes(path);
   };
 
   const filteredAdminRoutes = adminRoutes.filter(r => isPathAllowed(r.path));
