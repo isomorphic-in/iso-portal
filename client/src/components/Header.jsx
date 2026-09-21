@@ -241,12 +241,68 @@ export default function Header({
                       const percent = job.progress?.percentage !== undefined ? job.progress.percentage : (job.progress?.percent !== undefined ? job.progress.percent : (isCompleted ? 100 : 0));
                       const canCancel = Boolean(job.canCancel || job.createdBy === currentUser?.username || isGlobalAdmin);
 
+                      const isCrawl = job.type === 'crawl' || job.type === 'website_crawl';
+                      const isBatch = job.type === 'batch_ingest';
+                      const isSingle = job.type === 'ingest';
+
+                      const currentNum = job.progress?.current ?? (isCompleted ? (job.progress?.total || job.result?.totalDiscovered || job.result?.total || 0) : 0);
+                      const totalNum = job.progress?.total ?? (job.params?.maxPages || job.params?.totalUrls || job.result?.total || 0);
+
+                      let progressLabel = '';
+                      let countBadge = '';
+
+                      if (isCrawl) {
+                        const depthStr = job.stats?.currentDepth ? ` (D:${job.stats.currentDepth})` : '';
+                        if (isRunning) {
+                          progressLabel = `Page ${currentNum} of ${totalNum || 'max'}${depthStr}`;
+                          countBadge = `${currentNum}/${totalNum || '∞'}`;
+                        } else if (isCompleted) {
+                          const discovered = job.result?.totalDiscovered ?? job.stats?.discoveredCount ?? currentNum;
+                          progressLabel = `${discovered} pages found`;
+                          countBadge = `${discovered} found`;
+                        } else {
+                          progressLabel = job.error || 'Stopped';
+                        }
+                      } else if (isBatch) {
+                        const ingested = job.stats?.ingestedCount ?? job.result?.ingested ?? 0;
+                        const skipped = job.stats?.skippedCount ?? job.result?.skipped ?? 0;
+                        const failed = job.stats?.failedCount ?? job.result?.failed ?? 0;
+
+                        if (isRunning) {
+                          const counts = [];
+                          if (ingested > 0) counts.push(`${ingested} ok`);
+                          if (skipped > 0) counts.push(`${skipped} skip`);
+                          if (failed > 0) counts.push(`${failed} err`);
+                          const countsStr = counts.length > 0 ? ` [${counts.join(', ')}]` : '';
+                          progressLabel = `URL ${currentNum} of ${totalNum}${countsStr}`;
+                          countBadge = `${currentNum}/${totalNum}`;
+                        } else if (isCompleted) {
+                          const counts = [`${ingested} ok`];
+                          if (skipped > 0) counts.push(`${skipped} skip`);
+                          if (failed > 0) counts.push(`${failed} err`);
+                          progressLabel = `Done: ${counts.join(', ')} (${totalNum || currentNum} total)`;
+                          countBadge = `${ingested}/${totalNum || currentNum}`;
+                        } else {
+                          progressLabel = job.error || 'Stopped';
+                        }
+                      } else if (isSingle) {
+                        if (isRunning) {
+                          progressLabel = 'Ingesting & embedding...';
+                          countBadge = '1/1';
+                        } else if (isCompleted) {
+                          progressLabel = `Indexed (${job.result?.totalChunks || 0} chunks)`;
+                          countBadge = 'Done';
+                        }
+                      }
+
+                      const activeUrl = job.progress?.currentUrl || job.stats?.activeUrl || job.params?.url || job.params?.startUrl || '';
+
                       return (
                         <div key={jobId} className="p-2.5 bg-iso-cardBg hover:bg-iso-bgSecondary/60 transition-colors flex flex-col gap-1.5 rounded-xs">
                           {/* Title & Status Row */}
                           <div className="flex items-center justify-between gap-1 text-xs">
                             <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                              {job.type === 'crawl' || job.type === 'website_crawl' ? (
+                              {isCrawl ? (
                                 <Compass size={12} className="text-iso-accent shrink-0" />
                               ) : (
                                 <Layers size={12} className="text-iso-primary shrink-0" />
@@ -256,24 +312,31 @@ export default function Header({
                               </span>
                             </div>
 
-                            <span className={`px-1.5 py-0.2 text-[9px] font-mono rounded font-bold uppercase tracking-wider border shrink-0 ${
-                              isRunning 
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-300 animate-pulse' 
-                                : isCompleted 
-                                ? 'bg-blue-50 text-blue-700 border-blue-300'
-                                : isFailed
-                                ? 'bg-rose-50 text-rose-700 border-rose-300'
-                                : 'bg-slate-100 text-slate-600 border-slate-300'
-                            }`}>
-                              {job.status}
-                            </span>
+                            <div className="flex items-center gap-1 shrink-0">
+                              {countBadge && (
+                                <span className="px-1 py-0.2 text-[8px] font-mono bg-iso-bgSecondary border border-iso-border rounded text-iso-primary font-bold">
+                                  {countBadge}
+                                </span>
+                              )}
+                              <span className={`px-1.5 py-0.2 text-[9px] font-mono rounded font-bold uppercase tracking-wider border shrink-0 ${
+                                isRunning 
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-300 animate-pulse' 
+                                  : isCompleted 
+                                  ? 'bg-blue-50 text-blue-700 border-blue-300'
+                                  : isFailed
+                                  ? 'bg-rose-50 text-rose-700 border-rose-300'
+                                  : 'bg-slate-100 text-slate-600 border-slate-300'
+                              }`}>
+                                {job.status}
+                              </span>
+                            </div>
                           </div>
 
                           {/* Progress Bar (Always shows for active tasks) */}
                           <div className="flex flex-col gap-0.5">
                             <div className="flex justify-between items-center text-[9px] font-mono text-iso-textMuted">
-                              <span className="truncate max-w-[200px]">
-                                {job.progress?.currentUrl ? job.progress.currentUrl : (isRunning ? 'Processing...' : 'Completed')}
+                              <span className="font-semibold text-iso-primary truncate max-w-[200px]">
+                                {progressLabel || (isRunning ? 'Processing...' : 'Completed')}
                               </span>
                               <span className="font-bold text-iso-primary">{percent}%</span>
                             </div>
@@ -286,6 +349,18 @@ export default function Header({
                               />
                             </div>
                           </div>
+
+                          {/* Active URL row */}
+                          {activeUrl && (
+                            <div className="flex items-center gap-1 text-[9px] font-mono text-iso-textMuted bg-iso-bgSecondary/60 px-1.5 py-0.5 rounded border border-iso-border/40 min-w-0">
+                              <span className="text-[8px] font-bold text-iso-primary shrink-0 uppercase">
+                                {isRunning ? 'Active:' : 'Target:'}
+                              </span>
+                              <span className="truncate text-iso-text flex-1" title={activeUrl}>
+                                {activeUrl}
+                              </span>
+                            </div>
+                          )}
 
                           {/* Footer details & Creator/Cancel */}
                           <div className="flex items-center justify-between text-[9px] font-mono text-iso-textMuted pt-0.5">

@@ -264,10 +264,24 @@ export default function Ingestion({
     if (!job) return;
     let list = [];
     if (job?.result?.discoveredUrls && Array.isArray(job.result.discoveredUrls) && job.result.discoveredUrls.length > 0) {
-      list = job.result.discoveredUrls.map((u, idx) => ({ ...u, id: idx, selected: u.status !== 'error' }));
+      list = job.result.discoveredUrls;
     } else if (job?.discoveredUrls && Array.isArray(job.discoveredUrls) && job.discoveredUrls.length > 0) {
-      list = job.discoveredUrls.map((u, idx) => ({ ...u, id: idx, selected: u.status !== 'error' }));
+      list = job.discoveredUrls;
     }
+
+    const existingUrls = new Set((sources || []).map(s => (s.sourceUrl || '').toLowerCase().trim()));
+
+    const processedList = list.map((u, idx) => {
+      const uStr = (typeof u === 'string' ? u : u.url || '').toLowerCase().trim();
+      const isAlreadyIngested = existingUrls.has(uStr);
+      return {
+        ...(typeof u === 'string' ? { url: u, title: u } : u),
+        id: idx,
+        isAlreadyIngested,
+        selected: u.status !== 'error' && !isAlreadyIngested
+      };
+    });
+
     if (job?.params?.startUrl) setCrawlStartUrl(job.params.startUrl);
     else if (job?.result?.startUrl) setCrawlStartUrl(job.result.startUrl);
     if (job?.params?.maxDepth) setCrawlDepth(job.params.maxDepth);
@@ -275,7 +289,7 @@ export default function Ingestion({
     if (job?.params?.maxPages) setCrawlMaxPages(job.params.maxPages);
     else if (job?.result?.maxPages) setCrawlMaxPages(job.result.maxPages);
 
-    setDiscoveredUrls(list);
+    setDiscoveredUrls(processedList);
     setCrawledJobId(job?.id || job?.jobId || null);
     setCrawlerStep('results');
     setShowCrawlerModal(true);
@@ -495,6 +509,13 @@ export default function Ingestion({
     setDiscoveredUrls(prev => prev.map(u => ({
       ...u,
       selected: u.status !== 'error' ? checked : false
+    })));
+  };
+
+  const selectOnlyNewDiscovered = () => {
+    setDiscoveredUrls(prev => prev.map(u => ({
+      ...u,
+      selected: u.status !== 'error' && !u.isAlreadyIngested
     })));
   };
 
@@ -1388,6 +1409,14 @@ export default function Ingestion({
                   <div className="flex items-center gap-2 text-xs font-mono">
                     <button
                       type="button"
+                      onClick={selectOnlyNewDiscovered}
+                      className="text-emerald-600 font-semibold hover:underline cursor-pointer"
+                    >
+                      Select New Only
+                    </button>
+                    <span>•</span>
+                    <button
+                      type="button"
                       onClick={() => toggleSelectAllDiscovered(true)}
                       className="text-iso-accent hover:underline cursor-pointer"
                     >
@@ -1406,7 +1435,7 @@ export default function Ingestion({
 
                 <div className="overflow-y-auto max-h-80 border border-iso-border rounded divide-y divide-iso-border bg-iso-bg">
                   {filteredDiscoveredUrls.map((item, idx) => (
-                    <label key={idx} className="flex items-center gap-2.5 p-2 hover:bg-iso-bgSecondary cursor-pointer text-xs select-none">
+                    <label key={idx} className={`flex items-center gap-2.5 p-2 hover:bg-iso-bgSecondary cursor-pointer text-xs select-none ${item.isAlreadyIngested ? 'bg-amber-500/5' : ''}`}>
                       <input
                         type="checkbox"
                         checked={item.selected}
@@ -1414,7 +1443,14 @@ export default function Ingestion({
                         className="rounded text-iso-primary cursor-pointer"
                       />
                       <div className="flex flex-col min-w-0 flex-1">
-                        <span className="font-semibold text-iso-primary truncate">{item.title || item.url}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-iso-primary truncate">{item.title || item.url}</span>
+                          {item.isAlreadyIngested && (
+                            <span className="text-[9px] font-mono px-1.5 py-0.2 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded shrink-0">
+                              Already Ingested
+                            </span>
+                          )}
+                        </div>
                         <span className="text-[10px] font-mono text-iso-textMuted truncate">{item.url}</span>
                       </div>
                       {item.depth !== undefined && (

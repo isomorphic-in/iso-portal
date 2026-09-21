@@ -701,12 +701,68 @@ export default function Sidebar({
                   const percent = job.progress?.percentage !== undefined ? job.progress.percentage : (job.progress?.percent !== undefined ? job.progress.percent : (isCompleted ? 100 : 0));
                   const canCancel = Boolean(job.canCancel || job.createdBy === currentUser?.username || isGlobalAdmin);
 
+                  const isCrawl = job.type === 'crawl' || job.type === 'website_crawl';
+                  const isBatch = job.type === 'batch_ingest';
+                  const isSingle = job.type === 'ingest';
+
+                  const currentNum = job.progress?.current ?? (isCompleted ? (job.progress?.total || job.result?.totalDiscovered || job.result?.total || 0) : 0);
+                  const totalNum = job.progress?.total ?? (job.params?.maxPages || job.params?.totalUrls || job.result?.total || 0);
+
+                  let progressLabel = '';
+                  let countBadge = '';
+
+                  if (isCrawl) {
+                    const depthStr = job.stats?.currentDepth ? ` (Depth ${job.stats.currentDepth})` : '';
+                    if (isRunning) {
+                      progressLabel = `Crawling: ${currentNum} of ${totalNum || 'max'} pages discovered${depthStr}`;
+                      countBadge = `${currentNum}/${totalNum || '∞'}`;
+                    } else if (isCompleted) {
+                      const discovered = job.result?.totalDiscovered ?? job.stats?.discoveredCount ?? currentNum;
+                      progressLabel = `Crawl complete: ${discovered} total pages discovered`;
+                      countBadge = `${discovered} found`;
+                    } else {
+                      progressLabel = job.error || 'Crawl stopped';
+                    }
+                  } else if (isBatch) {
+                    const ingested = job.stats?.ingestedCount ?? job.result?.ingested ?? 0;
+                    const skipped = job.stats?.skippedCount ?? job.result?.skipped ?? 0;
+                    const failed = job.stats?.failedCount ?? job.result?.failed ?? 0;
+
+                    if (isRunning) {
+                      const counts = [];
+                      if (ingested > 0) counts.push(`${ingested} indexed`);
+                      if (skipped > 0) counts.push(`${skipped} skipped`);
+                      if (failed > 0) counts.push(`${failed} failed`);
+                      const countsStr = counts.length > 0 ? ` [${counts.join(', ')}]` : '';
+                      progressLabel = `Ingesting URL ${currentNum} of ${totalNum}${countsStr}`;
+                      countBadge = `URL ${currentNum}/${totalNum}`;
+                    } else if (isCompleted) {
+                      const counts = [`${ingested} indexed`];
+                      if (skipped > 0) counts.push(`${skipped} skipped`);
+                      if (failed > 0) counts.push(`${failed} failed`);
+                      progressLabel = `Batch complete: ${counts.join(', ')} (${totalNum || currentNum} total)`;
+                      countBadge = `${ingested}/${totalNum || currentNum}`;
+                    } else {
+                      progressLabel = job.error || 'Ingestion stopped';
+                    }
+                  } else if (isSingle) {
+                    if (isRunning) {
+                      progressLabel = 'Extracting content & generating embeddings...';
+                      countBadge = '1/1';
+                    } else if (isCompleted) {
+                      progressLabel = `Indexed into ${job.result?.totalChunks || 0} vector chunks`;
+                      countBadge = 'Done';
+                    }
+                  }
+
+                  const activeUrl = job.progress?.currentUrl || job.stats?.activeUrl || job.params?.url || job.params?.startUrl || '';
+
                   return (
                     <div key={jobId} className="p-3.5 bg-iso-cardBg border border-iso-border hover:border-iso-primary/30 transition-all flex flex-col gap-2 rounded-sm shadow-2xs">
                       {/* Title & Status Row */}
                       <div className="flex items-center justify-between gap-2 text-xs">
                         <div className="flex items-center gap-2 min-w-0 flex-1">
-                          {job.type === 'crawl' || job.type === 'website_crawl' ? (
+                          {isCrawl ? (
                             <div className="p-1 rounded bg-amber-50 border border-amber-200 text-amber-700">
                               <Compass size={14} className="shrink-0" />
                             </div>
@@ -725,24 +781,31 @@ export default function Sidebar({
                           </div>
                         </div>
 
-                        <span className={`px-2 py-0.5 text-[9px] font-mono rounded font-bold uppercase tracking-wider border shrink-0 ${
-                          isRunning 
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-300 animate-pulse' 
-                            : isCompleted 
-                            ? 'bg-blue-50 text-blue-700 border-blue-300'
-                            : isFailed
-                            ? 'bg-rose-50 text-rose-700 border-rose-300'
-                            : 'bg-slate-100 text-slate-600 border-slate-300'
-                        }`}>
-                          {job.status}
-                        </span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {countBadge && (
+                            <span className="px-1.5 py-0.5 text-[9px] font-mono bg-iso-bgSecondary border border-iso-border rounded text-iso-primary font-bold">
+                              {countBadge}
+                            </span>
+                          )}
+                          <span className={`px-2 py-0.5 text-[9px] font-mono rounded font-bold uppercase tracking-wider border shrink-0 ${
+                            isRunning 
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-300 animate-pulse' 
+                              : isCompleted 
+                              ? 'bg-blue-50 text-blue-700 border-blue-300'
+                              : isFailed
+                              ? 'bg-rose-50 text-rose-700 border-rose-300'
+                              : 'bg-slate-100 text-slate-600 border-slate-300'
+                          }`}>
+                            {job.status}
+                          </span>
+                        </div>
                       </div>
 
-                      {/* Progress Bar */}
+                      {/* Progress Bar & Counter */}
                       <div className="flex flex-col gap-1">
                         <div className="flex justify-between items-center text-[10px] font-mono text-iso-textMuted">
-                          <span className="truncate max-w-sm">
-                            {job.progress?.currentUrl ? job.progress.currentUrl : (isRunning ? 'Processing...' : 'Finished')}
+                          <span className="font-semibold text-iso-primary truncate max-w-sm">
+                            {progressLabel || (isRunning ? 'Processing...' : 'Finished')}
                           </span>
                           <span className="font-bold text-iso-primary">{percent}%</span>
                         </div>
@@ -755,6 +818,18 @@ export default function Sidebar({
                           />
                         </div>
                       </div>
+
+                      {/* Active URL row */}
+                      {activeUrl && (
+                        <div className="flex items-center gap-1.5 text-[10px] font-mono text-iso-textMuted bg-iso-bgSecondary/60 px-2 py-1 rounded border border-iso-border/40 min-w-0">
+                          <span className="text-[9px] font-bold text-iso-primary shrink-0 uppercase tracking-wide">
+                            {isRunning ? (isCrawl ? 'Scanning:' : 'Active:') : 'Source:'}
+                          </span>
+                          <span className="truncate text-iso-text flex-1" title={activeUrl}>
+                            {activeUrl}
+                          </span>
+                        </div>
+                      )}
 
                       {/* Footer: User & Actions */}
                       <div className="flex items-center justify-between text-[10px] font-mono text-iso-textMuted pt-1 border-t border-iso-border/50">
