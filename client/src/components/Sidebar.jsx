@@ -293,6 +293,8 @@ export default function Sidebar({
                 <img 
                   src={logoSmall || '/isomorphic-icon.png'} 
                   alt={tenantDisplayName} 
+                  crossOrigin="anonymous"
+                  referrerPolicy="no-referrer"
                   className="w-9 h-9 object-contain select-none" 
                   onError={(e) => { e.target.src = '/isomorphic-icon.png'; }} 
                 />
@@ -303,6 +305,8 @@ export default function Sidebar({
                 <img 
                   src={logoBig || logoSmall || '/isomorphic-logo.png'} 
                   alt={tenantDisplayName} 
+                  crossOrigin="anonymous"
+                  referrerPolicy="no-referrer"
                   className="max-h-12 max-w-[180px] object-contain select-none" 
                   onError={(e) => { e.target.src = '/isomorphic-logo.png'; }} 
                 />

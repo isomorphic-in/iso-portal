@@ -335,6 +335,8 @@ export default function TenantModal({
                       <img 
                         src={cfg.logoBigUrl} 
                         alt="Logo Preview" 
+                        crossOrigin="anonymous"
+                        referrerPolicy="no-referrer"
                         className="max-h-full max-w-full object-contain"
                         onError={(e) => { e.target.style.display = 'none'; }}
                       />

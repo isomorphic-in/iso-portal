@@ -419,6 +419,8 @@ export default function Login({ onLoginSuccess, showToast }) {
             <img 
               src={logoUrl} 
               alt={brandTitle} 
+              crossOrigin="anonymous"
+              referrerPolicy="no-referrer"
               className="h-14 md:h-16 max-w-[290px] object-contain mb-3 select-none transition-all duration-200" 
               onError={(e) => {
                 e.target.style.display = 'none';
