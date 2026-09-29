@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Key, User, Loader2, ShieldCheck, Lock, X, Eye, EyeOff, ArrowLeft, Mail, CheckCircle2, AlertCircle } from 'lucide-react';
 import { apiUrl } from '../config/api';
 import { applyTenantTheme, resetTenantTheme } from '../utils/theme';
+import TenantUnavailable from './TenantUnavailable';
 
 export default function Login({ onLoginSuccess, showToast }) {
   // Mode: 'login' | 'forgot' | 'reset'
@@ -37,6 +38,12 @@ export default function Login({ onLoginSuccess, showToast }) {
   const [tenantData, setTenantData] = useState(null);
   const [isFetchingBranding, setIsFetchingBranding] = useState(false);
   const [tenantFetchError, setTenantFetchError] = useState(null);
+  const [tenantUnavailable, setTenantUnavailable] = useState({
+    isUnavailable: false,
+    reason: 'not_found',
+    slug: '',
+    message: ''
+  });
 
   // Extract Tenant Identifier from Subdomain (*.isomorphic.in), Query (?tenant=), or Path (/login/:tenant)
   const resolveTenantSlug = useCallback(() => {
@@ -103,6 +110,7 @@ export default function Login({ onLoginSuccess, showToast }) {
     if (!slug) {
       setTenantData(null);
       setTenantFetchError(null);
+      setTenantUnavailable({ isUnavailable: false, reason: 'not_found', slug: '', message: '' });
       resetTenantTheme();
       try {
         localStorage.removeItem('iso_last_tenant');
@@ -120,15 +128,32 @@ export default function Login({ onLoginSuccess, showToast }) {
       if (res.ok && data && (data.tenantConfig || data.tenantName)) {
         setTenantData(data);
         setTenantFetchError(null);
+        setTenantUnavailable({ isUnavailable: false, reason: 'not_found', slug: '', message: '' });
         applyTenantTheme(data.tenantConfig || {}, data);
       } else {
         setTenantData(null);
-        setTenantFetchError(data.error || `Organization "${slug}" not found.`);
+        const isInactive = res.status === 403 || data?.inactive || data?.tenantActive === false;
+        const errorReason = isInactive ? 'inactive' : 'not_found';
+        const errorMsg = data?.error || (isInactive ? `Organization "${slug}" is inactive.` : `Organization "${slug}" not found.`);
+        setTenantFetchError(errorMsg);
+        setTenantUnavailable({
+          isUnavailable: true,
+          reason: errorReason,
+          slug,
+          message: errorMsg
+        });
         resetTenantTheme();
       }
     } catch (err) {
       console.warn('[Login] Error fetching tenant branding:', err);
-      setTenantFetchError(`Unable to connect to organization "${slug}".`);
+      const errorMsg = `Unable to connect to organization "${slug}".`;
+      setTenantFetchError(errorMsg);
+      setTenantUnavailable({
+        isUnavailable: true,
+        reason: 'not_found',
+        slug,
+        message: errorMsg
+      });
       setTenantData(null);
       resetTenantTheme();
     } finally {
@@ -338,15 +363,27 @@ export default function Login({ onLoginSuccess, showToast }) {
   // Full-page loader while resolving and loading organization branding
   if (isFetchingBranding) {
     return (
-      <div className="min-h-screen w-full bg-iso-bg flex flex-col items-center justify-center p-4 select-none">
+      <div className="min-h-screen w-full bg-[#FAF9F6] flex flex-col items-center justify-center p-4 select-none">
         <div className="flex flex-col items-center gap-3 animate-in fade-in duration-200">
-          <span className="text-3xl font-bold tracking-tight font-serif text-iso-primary">isomorphic</span>
-          <div className="flex items-center gap-2 text-xs text-iso-textMuted font-mono">
-            <span className="w-3.5 h-3.5 border-2 border-iso-primary border-t-transparent rounded-full animate-spin"></span>
-            Loading...
+          <span className="text-3xl font-bold tracking-tight font-serif text-[#0A2240]">isomorphic</span>
+          <div className="flex items-center gap-2 text-xs text-[#64748B] font-mono">
+            <span className="w-3.5 h-3.5 border-2 border-[#0A2240] border-t-transparent rounded-full animate-spin"></span>
+            Loading workspace...
           </div>
         </div>
       </div>
+    );
+  }
+
+  // Dedicated full-screen page when the requested organization/tenant is not found or inactive
+  if (tenantUnavailable.isUnavailable) {
+    return (
+      <TenantUnavailable
+        slug={tenantUnavailable.slug}
+        reason={tenantUnavailable.reason}
+        message={tenantUnavailable.message}
+        onRetry={() => fetchTenantBranding(tenantUnavailable.slug)}
+      />
     );
   }
 
