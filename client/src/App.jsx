@@ -15,11 +15,42 @@ const INACTIVITY_TIMEOUT_MS = 2 * 60 * 60 * 1000;
 // Heartbeat interval: send heartbeat every 2 minutes while active
 const HEARTBEAT_INTERVAL_MS = 2 * 60 * 1000;
 
-// Helper to extract explicit tenant identifier from URL path, query params, or subdomain
+// Helper to extract explicit tenant identifier from subdomain (*.isomorphic.in), URL path, or query params
 export const getExplicitUrlTenant = () => {
   if (typeof window === 'undefined') return '';
 
-  // 1. Path format: /login/:tenant or /tenant/:tenant
+  const host = window.location.hostname.toLowerCase();
+
+  // 1. Explicit admin portal: admin.isomorphic.in
+  if (host === 'admin.isomorphic.in') {
+    return 'admin';
+  }
+
+  // 2. Subdomain matching *.isomorphic.in (e.g. acme.isomorphic.in, iit.isomorphic.in)
+  // Note: isomorphic.in and www.isomorphic.in are the company website, not the portal
+  if (host.endsWith('.isomorphic.in')) {
+    const sub = host.slice(0, -'.isomorphic.in'.length).toLowerCase();
+    if (sub && sub !== 'www') {
+      return sub;
+    }
+  }
+
+  // 2. Subdomain for local development (e.g. acme.localhost or iit.localhost)
+  if (host.endsWith('.localhost')) {
+    const sub = host.slice(0, -'.localhost'.length).toLowerCase();
+    if (sub && sub !== 'www') {
+      return sub;
+    }
+  }
+
+  // 3. Query parameter format: ?tenant=acme or ?tenantId=acme or ?org=acme or ?code=acme
+  const searchParams = new URLSearchParams(window.location.search);
+  const qTenant = searchParams.get('tenant') || searchParams.get('tenantId') || searchParams.get('org') || searchParams.get('code');
+  if (qTenant) {
+    return qTenant.trim();
+  }
+
+  // 4. Legacy path format: /login/:tenant or /tenant/:tenant (fallback)
   const path = window.location.pathname;
   const loginMatch = path.match(/^\/login\/([a-zA-Z0-9_\-\.]+)/i);
   if (loginMatch && loginMatch[1]) {
@@ -30,16 +61,8 @@ export const getExplicitUrlTenant = () => {
     return tenantMatch[1].trim();
   }
 
-  // 2. Query parameter format: ?tenant=acme or ?tenantId=acme or ?org=acme or ?code=acme
-  const searchParams = new URLSearchParams(window.location.search);
-  const qTenant = searchParams.get('tenant') || searchParams.get('tenantId') || searchParams.get('org') || searchParams.get('code');
-  if (qTenant) {
-    return qTenant.trim();
-  }
-
-  // 3. Subdomain format: acme.portal.domain.com
-  const host = window.location.hostname;
-  if (host && !['localhost', '127.0.0.1'].includes(host) && !host.includes('.onrender.com')) {
+  // 5. Generic third-level subdomain (e.g. acme.domain.com)
+  if (!['localhost', '127.0.0.1'].includes(host) && !host.includes('.onrender.com') && !host.includes('github.io')) {
     const parts = host.split('.');
     if (parts.length > 2) {
       const sub = parts[0].toLowerCase();
@@ -133,25 +156,7 @@ export default function App() {
     } else if (reason === 'tenant_switch') {
       showToast(explicitTenant ? `Switched to organization "${explicitTenant}". Please log in.` : 'Switched organization. Please log in.', 'info');
     }
-
-    if (!explicitTenant && typeof window !== 'undefined') {
-      const pathname = window.location.pathname;
-      if (pathname === '/' || pathname === '/login' || pathname === '/login/') {
-        window.history.replaceState({}, '', `/login/admin${window.location.search}`);
-      }
-    }
   };
-
-  // Redirect base URL without /login/tenantId to /login/admin
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const pathname = window.location.pathname;
-      if (pathname === '/' || pathname === '/login' || pathname === '/login/') {
-        const query = window.location.search;
-        window.history.replaceState({}, '', `/login/admin${query}`);
-      }
-    }
-  }, []);
 
   // Check initial session validity on portal startup and enforce tenant isolation
   useEffect(() => {

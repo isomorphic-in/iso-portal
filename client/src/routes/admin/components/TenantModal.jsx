@@ -239,6 +239,10 @@ export default function TenantModal({
                 <div>
                   <label className="text-[10px] uppercase font-mono tracking-wider text-iso-textMuted block mb-1 font-semibold">Tenant Identifier (Slug) <span className="text-iso-error">*</span></label>
                   <input type="text" value={formData.tenantId || formData.code || ""} onChange={(e) => setFormData({ ...formData, tenantId: e.target.value, code: e.target.value })} placeholder="e.g. onestop" disabled={formData.id !== null} className="w-full bg-iso-bg border border-iso-border focus:border-iso-accent rounded-sm px-3 py-2 text-xs text-iso-text outline-none font-mono disabled:opacity-60" required />
+                  <div className="mt-1 text-[10px] text-iso-accent font-mono flex items-center gap-1 truncate">
+                    <span>Domain:</span>
+                    <span className="font-bold underline">https://{(formData.tenantId || formData.code || 'tenant').toLowerCase().trim()}.isomorphic.in</span>
+                  </div>
                 </div>
               </div>
 

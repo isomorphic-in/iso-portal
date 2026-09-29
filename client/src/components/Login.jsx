@@ -38,11 +38,42 @@ export default function Login({ onLoginSuccess, showToast }) {
   const [isFetchingBranding, setIsFetchingBranding] = useState(false);
   const [tenantFetchError, setTenantFetchError] = useState(null);
 
-  // Extract Tenant Identifier from Path (/login/:tenant or /tenant/:tenant), Query (?tenant=), or Subdomain
+  // Extract Tenant Identifier from Subdomain (*.isomorphic.in), Query (?tenant=), or Path (/login/:tenant)
   const resolveTenantSlug = useCallback(() => {
     if (typeof window === 'undefined') return '';
 
-    // 1. Path format: /login/:tenant or /tenant/:tenant
+    const host = window.location.hostname.toLowerCase();
+
+    // 1. Explicit admin portal: admin.isomorphic.in
+    if (host === 'admin.isomorphic.in') {
+      return 'admin';
+    }
+
+    // 2. Subdomain matching *.isomorphic.in (e.g. acme.isomorphic.in, iit.isomorphic.in)
+    // Note: isomorphic.in and www.isomorphic.in are the company website, not the portal
+    if (host.endsWith('.isomorphic.in')) {
+      const sub = host.slice(0, -'.isomorphic.in'.length).toLowerCase();
+      if (sub && sub !== 'www') {
+        return sub;
+      }
+    }
+
+    // 2. Subdomain for local development (e.g. acme.localhost or iit.localhost)
+    if (host.endsWith('.localhost')) {
+      const sub = host.slice(0, -'.localhost'.length).toLowerCase();
+      if (sub && sub !== 'www') {
+        return sub;
+      }
+    }
+
+    // 3. Query parameter format: ?tenant=acme or ?tenantId=acme or ?org=acme or ?code=acme
+    const searchParams = new URLSearchParams(window.location.search);
+    const qTenant = searchParams.get('tenant') || searchParams.get('tenantId') || searchParams.get('org') || searchParams.get('code');
+    if (qTenant) {
+      return qTenant.trim();
+    }
+
+    // 4. Legacy path format: /login/:tenant or /tenant/:tenant (fallback)
     const path = window.location.pathname;
     const loginMatch = path.match(/^\/login\/([a-zA-Z0-9_\-\.]+)/i);
     if (loginMatch && loginMatch[1]) {
@@ -53,16 +84,8 @@ export default function Login({ onLoginSuccess, showToast }) {
       return tenantMatch[1].trim();
     }
 
-    // 2. Query parameter format: ?tenant=acme or ?tenantId=acme or ?org=acme
-    const searchParams = new URLSearchParams(window.location.search);
-    const qTenant = searchParams.get('tenant') || searchParams.get('tenantId') || searchParams.get('org') || searchParams.get('code');
-    if (qTenant) {
-      return qTenant.trim();
-    }
-
-    // 3. Subdomain format: acme.portal.domain.com
-    const host = window.location.hostname;
-    if (host && !['localhost', '127.0.0.1'].includes(host) && !host.includes('.onrender.com')) {
+    // 5. Generic third-level subdomain (e.g. acme.domain.com)
+    if (!['localhost', '127.0.0.1'].includes(host) && !host.includes('.onrender.com') && !host.includes('github.io')) {
       const parts = host.split('.');
       if (parts.length > 2) {
         const sub = parts[0].toLowerCase();
@@ -115,14 +138,6 @@ export default function Login({ onLoginSuccess, showToast }) {
 
   // Initial load, Reset Token check, and URL listener
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const pathname = window.location.pathname;
-      if (pathname === '/' || pathname === '/login' || pathname === '/login/') {
-        const query = window.location.search;
-        window.history.replaceState({}, '', `/login/admin${query}`);
-      }
-    }
-
     const currentSlug = resolveTenantSlug();
     setTenantSlug(currentSlug);
     if (currentSlug) {
@@ -164,15 +179,19 @@ export default function Login({ onLoginSuccess, showToast }) {
         password: password.trim()
       };
 
+      const activeTenantId = tenantData?.tenantId || tenantSlug || '';
       // If tenant branding is loaded or slug is active, attach tenant scope
-      if (tenantData?.tenantId || tenantSlug) {
-        payload.tenant = tenantData?.tenantId || tenantSlug;
-        payload.tenantId = tenantData?.tenantId || tenantSlug;
+      if (activeTenantId) {
+        payload.tenant = activeTenantId;
+        payload.tenantId = activeTenantId;
       }
 
       const res = await fetch(apiUrl('/api/login'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(activeTenantId ? { 'x-tenant-id': activeTenantId } : {})
+        },
         body: JSON.stringify(payload)
       });
       const data = await res.json();
@@ -202,15 +221,20 @@ export default function Login({ onLoginSuccess, showToast }) {
     setForgotSuccess(null);
 
     try {
+      const activeTenantId = tenantData?.tenantId || tenantSlug || '';
       const payload = {
         identifier: forgotIdentifier.trim(),
-        tenant: tenantData?.tenantId || tenantSlug || '',
+        tenant: activeTenantId,
+        tenantId: activeTenantId,
         baseUrl: window.location.origin
       };
 
       const res = await fetch(apiUrl('/api/auth/forgot-password'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(activeTenantId ? { 'x-tenant-id': activeTenantId } : {})
+        },
         body: JSON.stringify(payload)
       });
       const data = await res.json();
@@ -832,7 +856,7 @@ export default function Login({ onLoginSuccess, showToast }) {
       {/* Powered by Isomorphic Signature */}
       <div className="relative z-10 mt-6 flex items-center justify-center select-none animate-in fade-in duration-300">
         <a 
-          href="https://isomorphicai.github.io"
+          href="https://isomorphic.in"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono tracking-wide transition-all shadow-2xs backdrop-blur-xs border hover:scale-105 active:scale-95 cursor-pointer group no-underline"

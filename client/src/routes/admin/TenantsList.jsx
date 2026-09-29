@@ -566,7 +566,18 @@ export default function TenantsList({
                           </div>
                         </td>
 
-                        <td className="py-3 font-mono text-iso-textMuted text-xs">{t.code || t.tenantId}</td>
+                        <td className="py-3 font-mono text-xs">
+                          <a 
+                            href={`https://${(t.code || t.tenantId || '').toLowerCase()}.isomorphic.in`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-iso-accent hover:underline flex items-center gap-1 font-semibold group"
+                            title={`Open https://${(t.code || t.tenantId || '').toLowerCase()}.isomorphic.in`}
+                          >
+                            <span>{t.code || t.tenantId}</span>
+                            <Globe size={11} className="text-iso-accent/70 shrink-0" />
+                          </a>
+                        </td>
                         <td className="py-3 font-mono text-xs text-iso-accent font-semibold">{t.tenantDbName || `iso_${t.code || t.tenantId}`}</td>
                         <td className="py-3 text-iso-text text-xs max-w-[140px] truncate">{t.tenantConfig?.instituteName || "-"}</td>
 

@@ -2,7 +2,9 @@
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 
   (typeof window !== 'undefined' && (window.location.port === '5000' || window.location.hostname.includes('iso-middleware'))
     ? '' 
-    : (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? '' : 'https://iso-middleware-1epx.onrender.com'));
+    : (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname.endsWith('.localhost') || window.location.hostname === '127.0.0.1')
+        ? '' 
+        : 'https://iso-middleware-1epx.onrender.com'));
 
 export function apiUrl(path) {
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
