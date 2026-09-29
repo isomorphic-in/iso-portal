@@ -42,21 +42,21 @@ export default function Login({ onLoginSuccess, showToast }) {
   const resolveTenantSlug = useCallback(() => {
     if (typeof window === 'undefined') return '';
 
-    // 1. Path format: /login/:tenant or /tenant/:tenant (excluding generic /login or /login/)
+    // 1. Path format: /login/:tenant or /tenant/:tenant
     const path = window.location.pathname;
     const loginMatch = path.match(/^\/login\/([a-zA-Z0-9_\-\.]+)/i);
-    if (loginMatch && loginMatch[1] && loginMatch[1].toLowerCase() !== 'admin') {
+    if (loginMatch && loginMatch[1]) {
       return loginMatch[1].trim();
     }
     const tenantMatch = path.match(/^\/tenant\/([a-zA-Z0-9_\-\.]+)/i);
-    if (tenantMatch && tenantMatch[1] && tenantMatch[1].toLowerCase() !== 'admin') {
+    if (tenantMatch && tenantMatch[1]) {
       return tenantMatch[1].trim();
     }
 
     // 2. Query parameter format: ?tenant=acme or ?tenantId=acme or ?org=acme
     const searchParams = new URLSearchParams(window.location.search);
     const qTenant = searchParams.get('tenant') || searchParams.get('tenantId') || searchParams.get('org') || searchParams.get('code');
-    if (qTenant && qTenant.trim().toLowerCase() !== 'admin') {
+    if (qTenant) {
       return qTenant.trim();
     }
 
@@ -71,11 +71,6 @@ export default function Login({ onLoginSuccess, showToast }) {
         }
       }
     }
-
-    // Default: No tenant slug given -> Admin / Master portal mode
-    try {
-      localStorage.removeItem('iso_last_tenant');
-    } catch (e) {}
 
     return '';
   }, []);

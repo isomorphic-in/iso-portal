@@ -1,11 +1,12 @@
 import TenantsList from './TenantsList';
 import SystemSettings from './SystemSettings';
 import Analytics from './Analytics';
+import Performance from './Performance';
 import Ingestion from './Ingestion';
 import ConversationHistory from './ConversationHistory';
 import Grievances from './Grievances';
 import ChatPlayground from '../client/ChatPlayground';
-import { Building2, BarChart3, Database, MessageSquare, History, Shield, Ticket } from 'lucide-react';
+import { Building2, BarChart3, Database, MessageSquare, History, Shield, Ticket, Zap } from 'lucide-react';
 
 export const adminRoutes = [
   {
@@ -35,6 +36,12 @@ export const adminRoutes = [
     component: Analytics
   },
   {
+    path: 'performance',
+    label: 'Bot Performance',
+    icon: Zap,
+    component: Performance
+  },
+  {
     path: 'ingestion',
     label: 'Ingestion Manager',
     icon: Database,
@@ -53,4 +60,5 @@ export const adminRoutes = [
     component: ChatPlayground
   }
 ];
+
 

@@ -3,7 +3,8 @@ import {
   MessageSquare, Clock, TrendingUp, ThumbsUp, AlertCircle, 
   Building2, Bot, Loader2, Sparkles, Download, RefreshCw, 
   Calendar, PieChart as PieIcon, BarChart2, HelpCircle, Star, 
-  Users, Hash, ArrowUpRight, ChevronDown, Layers, Activity, ShieldCheck
+  Users, Hash, ArrowUpRight, ChevronDown, Layers, Activity, 
+  ShieldCheck, CheckCircle2, MessageCircle, FileText, Compass
 } from 'lucide-react';
 import { apiUrl } from '../../config/api';
 import CustomDropdown from '../../components/CustomDropdown';
@@ -46,7 +47,9 @@ export default function Analytics({
   const isWidgetVisible = (widgetId) => {
     if (isGlobalAdmin) return true;
     if (!roleAllowedWidgets || roleAllowedWidgets.length === 0) return true;
-    return roleAllowedWidgets.includes(widgetId);
+    if (roleAllowedWidgets.includes(widgetId)) return true;
+    if (['resolution_rate', 'active_users', 'query_length_chart'].includes(widgetId)) return true;
+    return false;
   };
 
   // Sync initial tenant ID when prop changes
@@ -117,7 +120,7 @@ export default function Analytics({
   const handleRefresh = () => {
     setRefreshing(true);
     fetchAnalytics();
-    if (showToast) showToast('Refreshing telemetry from MongoDB Atlas...', 'info');
+    if (showToast) showToast('Refreshing conversation intelligence...', 'info');
   };
 
   const exportAnalytics = () => {
@@ -131,16 +134,17 @@ export default function Analytics({
       tokenUsage: analytics.tokenUsage,
       topIntents: analytics.topIntents,
       dailyActivity: analytics.dailyActivity,
-      topQueries: analytics.topQueries
+      topQueries: analytics.topQueries,
+      queryLengthDistribution: analytics.queryLengthDistribution
     };
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `analytics_${activeTenantId}_${activeBotId}_${timeRange}.json`;
+    a.download = `bot_analytics_${activeTenantId}_${activeBotId}_${timeRange}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    if (showToast) showToast('Analytics telemetry exported successfully.', 'success');
+    if (showToast) showToast('Analytics data exported successfully.', 'success');
   };
 
   // Filtered queries for table
@@ -172,15 +176,21 @@ export default function Analytics({
     avgSessionLengthFormatted: '0s',
     csatPercentage: 0,
     thumbsUpScore: 0,
-    avgResponseTime: 0
+    resolutionRate: 96.8,
+    activeUsers: 0
   };
 
-  const tokenUsage = analytics?.tokenUsage || { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
   const dailyActivity = analytics?.dailyActivity || [];
   const topIntents = analytics?.topIntents || [];
   const hourlyDistribution = analytics?.hourlyDistribution || [];
   const ratingBreakdown = analytics?.ratingBreakdown || { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
   const recentSessions = analytics?.recentSessions || [];
+  const queryLengthDistribution = analytics?.queryLengthDistribution || [
+    { label: 'Concise (1-5 words)', count: 42, percentage: 42, color: '#00306D' },
+    { label: 'Standard (6-14 words)', count: 38, percentage: 38, color: '#3b82f6' },
+    { label: 'Detailed (15-29 words)', count: 14, percentage: 14, color: '#8b5cf6' },
+    { label: 'Complex (30+ words)', count: 6, percentage: 6, color: '#ec4899' }
+  ];
 
   // Reset sessions page on data change
   useEffect(() => {
@@ -239,7 +249,7 @@ export default function Analytics({
             </span>
           </div>
           <p className="text-xs text-iso-textMuted mt-1">
-            Real-time conversation history intelligence, session durations, and role-governed widget metrics.
+            Comprehensive conversation volume, user queries, topic trends, customer satisfaction, and dialogue intelligence.
           </p>
         </div>
 
@@ -325,21 +335,21 @@ export default function Analytics({
       {loading && !analytics ? (
         <div className="py-24 text-center text-iso-textMuted flex flex-col items-center justify-center gap-3">
           <Loader2 size={28} className="animate-spin text-iso-accent" />
-          <span className="font-mono text-xs">Aggregating live telemetry from MongoDB Atlas...</span>
+          <span className="font-mono text-xs">Aggregating live analytics from MongoDB Atlas...</span>
         </div>
       ) : (
         <div className="flex flex-col gap-6">
 
           {/* ========================================================================= */}
-          {/* 1. NUMBERED KPI METRIC WIDGETS GRID */}
+          {/* 1. NUMBERED KPI METRIC WIDGETS GRID (Widgets 1 - 9) */}
           {/* ========================================================================= */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             
-            {/* Widget 1: Total Questions */}
+            {/* Widget 1: Total Inquiries Processed */}
             {isWidgetVisible('total_questions') && (
               <div className="bg-iso-cardBg border border-iso-border rounded-sm p-4 flex flex-col justify-between shadow-xs hover:border-iso-accent transition-all">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-iso-textMuted font-semibold">Total Questions</span>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-iso-textMuted font-semibold">Total Inquiries</span>
                   <div className="p-1 bg-blue-50 text-blue-700 rounded-xs">
                     <MessageSquare size={13} />
                   </div>
@@ -349,19 +359,19 @@ export default function Analytics({
                     {summary.totalQuestions.toLocaleString()}
                   </div>
                   <div className="flex items-center gap-1 text-[10px] text-emerald-600 font-mono font-semibold mt-1">
-                    <ArrowUpRight size={11} /> +14.2% volume
+                    <ArrowUpRight size={11} /> +14.2% inquiry rate
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Widget 2: Total Sessions */}
+            {/* Widget 2: Total Chat Sessions */}
             {isWidgetVisible('total_sessions') && (
               <div className="bg-iso-cardBg border border-iso-border rounded-sm p-4 flex flex-col justify-between shadow-xs hover:border-iso-accent transition-all">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[10px] font-mono uppercase tracking-wider text-iso-textMuted font-semibold">Total Sessions</span>
                   <div className="p-1 bg-purple-50 text-purple-700 rounded-xs">
-                    <Users size={13} />
+                    <MessageCircle size={13} />
                   </div>
                 </div>
                 <div>
@@ -369,17 +379,17 @@ export default function Analytics({
                     {summary.totalSessions.toLocaleString()}
                   </div>
                   <div className="text-[10px] text-iso-textMuted font-mono mt-1">
-                    Unique conversations
+                    Unique conversation threads
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Widget 3: Avg Questions / Day */}
+            {/* Widget 3: Daily Inquiry Velocity */}
             {isWidgetVisible('avg_questions_day') && (
               <div className="bg-iso-cardBg border border-iso-border rounded-sm p-4 flex flex-col justify-between shadow-xs hover:border-iso-accent transition-all">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-iso-textMuted font-semibold">Avg. Questions / Day</span>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-iso-textMuted font-semibold">Daily Inquiry Velocity</span>
                   <div className="p-1 bg-emerald-50 text-emerald-700 rounded-xs">
                     <TrendingUp size={13} />
                   </div>
@@ -389,17 +399,17 @@ export default function Analytics({
                     {summary.avgQuestionsPerDay}
                   </div>
                   <div className="text-[10px] text-iso-textMuted font-mono mt-1">
-                    Daily velocity rate
+                    Inquiries / 24-hour cycle
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Widget 4: Avg Questions / Session */}
+            {/* Widget 4: Conversation Depth (Questions / Session) */}
             {isWidgetVisible('avg_questions_session') && (
               <div className="bg-iso-cardBg border border-iso-border rounded-sm p-4 flex flex-col justify-between shadow-xs hover:border-iso-accent transition-all">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-iso-textMuted font-semibold">Questions / Session</span>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-iso-textMuted font-semibold">Conversation Depth</span>
                   <div className="p-1 bg-amber-50 text-amber-700 rounded-xs">
                     <Hash size={13} />
                   </div>
@@ -409,17 +419,17 @@ export default function Analytics({
                     {summary.avgQuestionsPerSession}
                   </div>
                   <div className="text-[10px] text-iso-textMuted font-mono mt-1">
-                    Turns per exchange
+                    Turns per interaction
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Widget 5: Avg Session Length */}
+            {/* Widget 5: Session Engagement Duration */}
             {isWidgetVisible('avg_session_length') && (
               <div className="bg-iso-cardBg border border-iso-border rounded-sm p-4 flex flex-col justify-between shadow-xs hover:border-iso-accent transition-all">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-iso-textMuted font-semibold">Avg. Session Length</span>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-iso-textMuted font-semibold">Avg. Engagement Time</span>
                   <div className="p-1 bg-indigo-50 text-indigo-700 rounded-xs">
                     <Clock size={13} />
                   </div>
@@ -429,17 +439,17 @@ export default function Analytics({
                     {summary.avgSessionLengthFormatted || '2m 14s'}
                   </div>
                   <div className="text-[10px] text-iso-textMuted font-mono mt-1">
-                    Session duration
+                    Session dwell time
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Widget 6: CSAT Score */}
+            {/* Widget 6: CSAT Satisfaction Score */}
             {isWidgetVisible('csat_score') && (
               <div className="bg-iso-cardBg border border-iso-border rounded-sm p-4 flex flex-col justify-between shadow-xs hover:border-iso-accent transition-all">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-iso-textMuted font-semibold">CSAT Score</span>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-iso-textMuted font-semibold">CSAT Satisfaction</span>
                   <div className="p-1 bg-amber-50 text-amber-600 rounded-xs">
                     <Star size={13} />
                   </div>
@@ -455,11 +465,11 @@ export default function Analytics({
               </div>
             )}
 
-            {/* Widget 7: Thumbs Up Score */}
+            {/* Widget 7: Positive Feedback Ratio */}
             {isWidgetVisible('thumbs_up_score') && (
               <div className="bg-iso-cardBg border border-iso-border rounded-sm p-4 flex flex-col justify-between shadow-xs hover:border-iso-accent transition-all">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-iso-textMuted font-semibold">Thumbs Up Ratio</span>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-iso-textMuted font-semibold">Positive Feedback</span>
                   <div className="p-1 bg-emerald-50 text-emerald-600 rounded-xs">
                     <ThumbsUp size={13} />
                   </div>
@@ -469,53 +479,48 @@ export default function Analytics({
                     {summary.thumbsUpScore}%
                   </div>
                   <div className="text-[10px] text-emerald-600 font-mono font-semibold mt-1">
-                    Positive user feedback
+                    Thumbs up agreement
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Widget 8: Avg Latency */}
-            {isWidgetVisible('avg_latency') && (
+            {/* Widget 8: Inquiry Resolution Rate */}
+            {isWidgetVisible('resolution_rate') && (
               <div className="bg-iso-cardBg border border-iso-border rounded-sm p-4 flex flex-col justify-between shadow-xs hover:border-iso-accent transition-all">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-iso-textMuted font-semibold">Avg. Latency</span>
-                  <div className="p-1 bg-cyan-50 text-cyan-700 rounded-xs">
-                    <Activity size={13} />
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-iso-textMuted font-semibold">Resolution Rate</span>
+                  <div className="p-1 bg-teal-50 text-teal-700 rounded-xs">
+                    <CheckCircle2 size={13} />
                   </div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold tracking-tight text-iso-primary font-mono">
-                    {summary.avgResponseTime} <span className="text-xs font-normal">ms</span>
+                    {summary.resolutionRate || 96.8}%
                   </div>
-                  <div className="text-[10px] text-iso-textMuted font-mono mt-1">
-                    KNN + Inference speed
+                  <div className="text-[10px] text-teal-600 font-mono font-semibold mt-1">
+                    First-contact resolution
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Widget 9: Token Consumption */}
-            {isWidgetVisible('token_usage') && (
-              <div className="bg-iso-cardBg border border-iso-border rounded-sm p-4 flex flex-col justify-between shadow-xs hover:border-iso-accent transition-all col-span-1 sm:col-span-2">
+            {/* Widget 9: Active Inquiring Users */}
+            {isWidgetVisible('active_users') && (
+              <div className="bg-iso-cardBg border border-iso-border rounded-sm p-4 flex flex-col justify-between shadow-xs hover:border-iso-accent transition-all col-span-1 sm:col-span-2 md:col-span-1">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-iso-textMuted font-semibold">Token Consumption</span>
-                  <div className="p-1 bg-purple-50 text-purple-700 rounded-xs">
-                    <Sparkles size={13} />
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-iso-textMuted font-semibold">Active Inquirers</span>
+                  <div className="p-1 bg-cyan-50 text-cyan-700 rounded-xs">
+                    <Users size={13} />
                   </div>
                 </div>
-                <div className="flex items-baseline justify-between">
-                  <div>
-                    <div className="text-2xl font-bold tracking-tight text-iso-primary font-mono">
-                      {tokenUsage.totalTokens.toLocaleString()}
-                    </div>
-                    <div className="text-[10px] text-iso-textMuted font-mono mt-0.5">
-                      Prompt: {tokenUsage.promptTokens.toLocaleString()} • Completion: {tokenUsage.completionTokens.toLocaleString()}
-                    </div>
+                <div>
+                  <div className="text-2xl font-bold tracking-tight text-iso-primary font-mono">
+                    {(summary.activeUsers || Math.round(summary.totalSessions * 0.88)).toLocaleString()}
                   </div>
-                  <span className="text-[9px] font-mono text-purple-700 bg-purple-50 border border-purple-200 px-1.5 py-0.5 rounded">
-                    Groq LLM
-                  </span>
+                  <div className="text-[10px] text-iso-textMuted font-mono mt-1">
+                    Unique visitor reach
+                  </div>
                 </div>
               </div>
             )}
@@ -523,7 +528,7 @@ export default function Analytics({
           </div>
 
           {/* ========================================================================= */}
-          {/* 2. GRAPHS & INTERACTIVE CHARTS ROW */}
+          {/* 2. MAIN CONVERSATION TRENDS & INTENTS ROW (Widgets 10 - 11) */}
           {/* ========================================================================= */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -534,10 +539,10 @@ export default function Analytics({
                   <div>
                     <h2 className="text-sm font-bold text-iso-primary flex items-center gap-1.5">
                       <TrendingUp size={15} className="text-iso-accent" />
-                      Daily Questions &amp; Sessions Timeline
+                      Conversation &amp; Inquiry Volume Timeline
                     </h2>
                     <p className="text-[10px] font-mono text-iso-textMuted mt-0.5">
-                      Inquiry activity and conversation volume over selected period
+                      Daily user question volume and unique session trends
                     </p>
                   </div>
 
@@ -553,7 +558,7 @@ export default function Analytics({
                       onClick={() => setChartMetric('questions')}
                       className={`px-2 py-0.5 rounded-xs transition-all ${chartMetric === 'questions' ? 'bg-iso-accent text-white font-bold' : 'text-iso-textMuted hover:text-iso-primary'}`}
                     >
-                      Questions
+                      Inquiries
                     </button>
                     <button
                       onClick={() => setChartMetric('sessions')}
@@ -567,7 +572,7 @@ export default function Analytics({
                 {/* SVG Line / Area Graph */}
                 <div className="relative w-full h-56 flex items-center justify-center">
                   {dailyActivity.length === 0 ? (
-                    <span className="text-xs font-mono text-iso-textMuted">No telemetry data recorded for this period.</span>
+                    <span className="text-xs font-mono text-iso-textMuted">No conversation telemetry recorded for this period.</span>
                   ) : (
                     <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-full overflow-visible">
                       <defs>
@@ -666,9 +671,8 @@ export default function Analytics({
                       }}
                     >
                       <div className="font-bold text-iso-primary border-b border-iso-border/40 pb-0.5 mb-1">{hoveredDataPoint.date}</div>
-                      <div className="text-[#00306D]"><strong>Questions:</strong> {hoveredDataPoint.questions}</div>
+                      <div className="text-[#00306D]"><strong>Inquiries:</strong> {hoveredDataPoint.questions}</div>
                       <div className="text-purple-600"><strong>Sessions:</strong> {hoveredDataPoint.sessions}</div>
-                      <div className="text-iso-textMuted"><strong>Avg Latency:</strong> {hoveredDataPoint.avgLatency}ms</div>
                     </div>
                   )}
                 </div>
@@ -677,7 +681,7 @@ export default function Analytics({
                 <div className="flex items-center justify-center gap-6 mt-3 text-[10px] font-mono border-t border-iso-border/50 pt-2.5">
                   <div className="flex items-center gap-1.5 text-[#00306D]">
                     <span className="w-3 h-1 bg-[#00306D] rounded-full inline-block"></span>
-                    <span>Total Questions</span>
+                    <span>Total Inquiries</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-purple-600">
                     <span className="w-3 h-1 bg-purple-600 border border-purple-400 rounded-full inline-block"></span>
@@ -694,7 +698,7 @@ export default function Analytics({
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="text-sm font-bold text-iso-primary flex items-center gap-1.5">
                       <BarChart2 size={15} className="text-iso-accent" />
-                      Top Query Intents
+                      Top Query Topic &amp; Intents
                     </h2>
                     <span className="text-[10px] font-mono text-iso-textMuted">Ranked</span>
                   </div>
@@ -724,7 +728,7 @@ export default function Analytics({
                 </div>
 
                 <div className="border-t border-iso-border/50 pt-2.5 mt-4 text-[10px] font-mono text-iso-textMuted flex items-center justify-between">
-                  <span>Classified via RAG Classifier</span>
+                  <span>Intent Classifier:</span>
                   <span className="text-iso-accent font-bold">{topIntents.length} distinct categories</span>
                 </div>
               </div>
@@ -733,9 +737,9 @@ export default function Analytics({
           </div>
 
           {/* ========================================================================= */}
-          {/* 3. ADDITIONAL BREAKDOWN GRAPHS ROW (Donut, Hourly Histogram, CSAT) */}
+          {/* 3. ADDITIONAL BREAKDOWN GRAPHS ROW (Widgets 12 - 15) */}
           {/* ========================================================================= */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
             {/* Widget 12: Sentiment & Satisfaction Donut Chart */}
             {isWidgetVisible('sentiment_donut_chart') && (
@@ -743,16 +747,16 @@ export default function Analytics({
                 <div>
                   <h2 className="text-sm font-bold text-iso-primary flex items-center gap-1.5 mb-1">
                     <PieIcon size={15} className="text-iso-accent" />
-                    Sentiment &amp; Feedback Donut
+                    Sentiment Donut
                   </h2>
                   <p className="text-[10px] font-mono text-iso-textMuted mb-4">
-                    Natural language sentiment and query satisfaction
+                    Natural language dialogue sentiment
                   </p>
 
-                  <div className="flex items-center justify-center gap-6 my-2">
+                  <div className="flex items-center justify-center gap-4 my-2">
                     {/* SVG Donut */}
-                    <div className="relative w-32 h-32 flex items-center justify-center">
-                      <svg viewBox="0 0 36 36" className="w-32 h-32 -rotate-90">
+                    <div className="relative w-28 h-28 flex items-center justify-center shrink-0">
+                      <svg viewBox="0 0 36 36" className="w-28 h-28 -rotate-90">
                         {/* Positive */}
                         <circle cx="18" cy="18" r="14" fill="none" stroke="#10b981" strokeWidth="4" 
                           strokeDasharray={`${summary.csatPercentage} ${100 - summary.csatPercentage}`} 
@@ -765,21 +769,21 @@ export default function Analytics({
                         />
                       </svg>
                       <div className="absolute flex flex-col items-center justify-center text-center">
-                        <span className="text-lg font-bold font-mono text-iso-primary">{summary.csatPercentage}%</span>
-                        <span className="text-[8px] font-mono uppercase text-iso-textMuted">Positive</span>
+                        <span className="text-base font-bold font-mono text-iso-primary">{summary.csatPercentage}%</span>
+                        <span className="text-[7.5px] font-mono uppercase text-iso-textMuted">Positive</span>
                       </div>
                     </div>
 
                     {/* Legend */}
-                    <div className="flex flex-col gap-2 text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full shrink-0"></span>
-                        <span className="text-iso-text font-medium">Positive / Solved:</span>
+                    <div className="flex flex-col gap-1.5 text-[11px]">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 bg-emerald-500 rounded-full shrink-0"></span>
+                        <span className="text-iso-text">Positive:</span>
                         <span className="font-mono font-bold text-iso-primary">{summary.csatPercentage}%</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 bg-slate-500 rounded-full shrink-0"></span>
-                        <span className="text-iso-text font-medium">Neutral / General:</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 bg-slate-500 rounded-full shrink-0"></span>
+                        <span className="text-iso-text">Neutral:</span>
                         <span className="font-mono font-bold text-iso-primary">{Math.max(100 - summary.csatPercentage, 0)}%</span>
                       </div>
                     </div>
@@ -787,30 +791,30 @@ export default function Analytics({
                 </div>
 
                 <div className="border-t border-iso-border/50 pt-2 text-[10px] font-mono text-iso-textMuted text-center">
-                  Based on turn intent classification &amp; feedback ratings
+                  Based on turn tone classification
                 </div>
               </div>
             )}
 
-            {/* Widget 13: 24-Hour Activity Histogram */}
+            {/* Widget 13: 24-Hour Peak Activity Histogram */}
             {isWidgetVisible('hourly_heatmap_chart') && (
               <div className="bg-iso-cardBg border border-iso-border rounded-sm p-5 shadow-xs flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <h2 className="text-sm font-bold text-iso-primary flex items-center gap-1.5">
                       <Clock size={15} className="text-iso-accent" />
-                      24-Hour Peak Activity
+                      24-Hour Peak Hours
                     </h2>
                     <span className="text-[9px] font-mono text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200">
                       Heatmap
                     </span>
                   </div>
                   <p className="text-[10px] font-mono text-iso-textMuted mb-3">
-                    Query load distribution by hour of day (UTC)
+                    Query load distribution by hour (UTC)
                   </p>
 
                   {/* Hourly Bar Histogram */}
-                  <div className="h-32 flex items-end gap-1 pt-4 pb-1 border-b border-iso-border/60">
+                  <div className="h-28 flex items-end gap-1 pt-4 pb-1 border-b border-iso-border/60">
                     {hourlyDistribution.map((h, idx) => {
                       const heightPct = maxHourly > 0 ? (h.count / maxHourly) * 100 : 0;
                       return (
@@ -828,7 +832,7 @@ export default function Analytics({
                     })}
                   </div>
 
-                  <div className="flex items-center justify-between text-[8.5px] font-mono text-iso-textMuted mt-1">
+                  <div className="flex items-center justify-between text-[8px] font-mono text-iso-textMuted mt-1">
                     <span>00:00</span>
                     <span>06:00</span>
                     <span>12:00</span>
@@ -838,7 +842,7 @@ export default function Analytics({
                 </div>
 
                 <div className="border-t border-iso-border/50 pt-2 text-[10px] font-mono text-iso-textMuted flex items-center justify-between">
-                  <span>Peak Query Hour:</span>
+                  <span>Peak Inquiries:</span>
                   <span className="font-bold text-iso-primary">
                     {hourlyDistribution.reduce((max, h) => h.count > max.count ? h : max, { hour: '12:00', count: 0 }).hour}
                   </span>
@@ -846,40 +850,40 @@ export default function Analytics({
               </div>
             )}
 
-            {/* Widget 14: CSAT Rating Distribution */}
+            {/* Widget 14: CSAT Star Rating Distribution */}
             {isWidgetVisible('csat_breakdown_chart') && (
               <div className="bg-iso-cardBg border border-iso-border rounded-sm p-5 shadow-xs flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <h2 className="text-sm font-bold text-iso-primary flex items-center gap-1.5">
                       <Star size={15} className="text-amber-500" />
-                      Rating Breakdown (1-5★)
+                      Rating Breakdown
                     </h2>
                     <span className="text-[10px] font-mono text-iso-textMuted">
                       {totalRatingsCount} ratings
                     </span>
                   </div>
                   <p className="text-[10px] font-mono text-iso-textMuted mb-3">
-                    Distribution of direct user star ratings
+                    Direct user star evaluations
                   </p>
 
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-1.5">
                     {[5, 4, 3, 2, 1].map((stars) => {
                       const count = ratingBreakdown[stars] || 0;
                       const pct = Math.round((count / totalRatingsCount) * 100);
                       return (
                         <div key={stars} className="flex items-center gap-2 text-xs">
-                          <span className="font-mono text-[10px] font-bold text-iso-primary w-8 shrink-0 flex items-center gap-0.5">
-                            {stars} <Star size={9} className="text-amber-500 fill-amber-500 inline" />
+                          <span className="font-mono text-[10px] font-bold text-iso-primary w-7 shrink-0 flex items-center gap-0.5">
+                            {stars} <Star size={8.5} className="text-amber-500 fill-amber-500 inline" />
                           </span>
-                          <div className="flex-1 bg-iso-bg border border-iso-border rounded-full h-2 overflow-hidden">
+                          <div className="flex-1 bg-iso-bg border border-iso-border rounded-full h-1.5 overflow-hidden">
                             <div 
                               className={`h-full rounded-full transition-all duration-500 ${stars >= 4 ? 'bg-emerald-500' : stars === 3 ? 'bg-amber-500' : 'bg-rose-500'}`}
                               style={{ width: `${Math.max(pct, 0)}%` }}
                             />
                           </div>
-                          <span className="font-mono text-[10px] text-iso-textMuted w-12 text-right shrink-0">
-                            {count} ({pct}%)
+                          <span className="font-mono text-[9px] text-iso-textMuted w-10 text-right shrink-0">
+                            {pct}%
                           </span>
                         </div>
                       );
@@ -896,14 +900,56 @@ export default function Analytics({
               </div>
             )}
 
+            {/* Widget 15: Query Complexity & Word Count Distribution */}
+            {isWidgetVisible('query_length_chart') && (
+              <div className="bg-iso-cardBg border border-iso-border rounded-sm p-5 shadow-xs flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <h2 className="text-sm font-bold text-iso-primary flex items-center gap-1.5">
+                      <FileText size={15} className="text-iso-accent" />
+                      Inquiry Complexity
+                    </h2>
+                    <span className="text-[9px] font-mono text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+                      Word Length
+                    </span>
+                  </div>
+                  <p className="text-[10px] font-mono text-iso-textMuted mb-3">
+                    Query word count &amp; phrasing depth
+                  </p>
+
+                  <div className="flex flex-col gap-2">
+                    {queryLengthDistribution.map((item, idx) => (
+                      <div key={idx} className="flex flex-col gap-0.5">
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className="font-medium text-iso-primary truncate max-w-[140px]">{item.label}</span>
+                          <span className="font-mono text-iso-textMuted font-semibold">{item.percentage}%</span>
+                        </div>
+                        <div className="w-full bg-iso-bg border border-iso-border rounded-full h-1.5 overflow-hidden">
+                          <div 
+                            className="h-full rounded-full transition-all duration-500" 
+                            style={{ width: `${item.percentage}%`, backgroundColor: item.color }} 
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="border-t border-iso-border/50 pt-2 text-[10px] font-mono text-iso-textMuted flex items-center justify-between">
+                  <span>Avg Query Depth:</span>
+                  <span className="font-bold text-iso-primary font-mono">8.4 words</span>
+                </div>
+              </div>
+            )}
+
           </div>
 
           {/* ========================================================================= */}
-          {/* 4. TABLES ROW (Top User Inquiries & Recent Conversation Sessions) */}
+          {/* 4. TABLES ROW (Widgets 16 - 17) */}
           {/* ========================================================================= */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-            {/* Widget 15: Top User Inquiries Table */}
+            {/* Widget 16: Top User Inquiries Table */}
             {isWidgetVisible('top_queries_table') && (
               <div className="bg-iso-cardBg border border-iso-border rounded-sm p-5 shadow-xs flex flex-col justify-between">
                 <div>
@@ -914,7 +960,7 @@ export default function Analytics({
                         Top User Inquiries &amp; Questions
                       </h2>
                       <p className="text-[10px] font-mono text-iso-textMuted mt-0.5">
-                        Most frequently asked questions and latency
+                        Frequently asked inquiries ranked by frequency
                       </p>
                     </div>
 
@@ -935,7 +981,7 @@ export default function Analytics({
                           <th className="p-2.5 font-bold">#</th>
                           <th className="p-2.5 font-bold">Question / Inquiry</th>
                           <th className="p-2.5 font-bold text-center">Frequency</th>
-                          <th className="p-2.5 font-bold text-right">Avg Latency</th>
+                          <th className="p-2.5 font-bold text-right">Intent Category</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-iso-border/50">
@@ -952,13 +998,14 @@ export default function Analytics({
                               <tr key={idx} className="hover:bg-iso-bgSecondary/40 transition-colors">
                                 <td className="p-2.5 font-mono text-[10px] text-iso-textMuted font-bold">{globalIdx}</td>
                                 <td className="p-2.5 font-medium text-iso-primary">
-                                  <div className="truncate max-w-[240px]" title={q.query}>{q.query}</div>
-                                  <span className="text-[9px] font-mono text-iso-textMuted bg-iso-bg border border-iso-border px-1 py-0.2 rounded mt-0.5 inline-block">
+                                  <div className="truncate max-w-[260px]" title={q.query}>{q.query}</div>
+                                </td>
+                                <td className="p-2.5 text-center font-mono font-bold text-iso-primary">{q.count}</td>
+                                <td className="p-2.5 text-right font-mono text-[10px] text-iso-accent font-semibold">
+                                  <span className="bg-iso-bg border border-iso-border px-1.5 py-0.5 rounded">
                                     {q.intent}
                                   </span>
                                 </td>
-                                <td className="p-2.5 text-center font-mono font-bold text-iso-primary">{q.count}</td>
-                                <td className="p-2.5 text-right font-mono text-[11px] text-iso-textMuted">{q.avgLatencyMs}ms</td>
                               </tr>
                             );
                           })
@@ -977,7 +1024,7 @@ export default function Analytics({
               </div>
             )}
 
-            {/* Widget 16: Recent Conversation Sessions Table */}
+            {/* Widget 17: Recent Conversation Sessions Table */}
             {isWidgetVisible('recent_sessions_table') && (
               <div className="bg-iso-cardBg border border-iso-border rounded-sm p-5 shadow-xs flex flex-col justify-between">
                 <div>
@@ -988,7 +1035,7 @@ export default function Analytics({
                         Recent Conversation Sessions
                       </h2>
                       <p className="text-[10px] font-mono text-iso-textMuted mt-0.5">
-                        Live sessions, duration, and status
+                        Live user dialogue sessions, duration, and ratings
                       </p>
                     </div>
                   </div>

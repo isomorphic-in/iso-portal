@@ -19,21 +19,21 @@ const HEARTBEAT_INTERVAL_MS = 2 * 60 * 1000;
 export const getExplicitUrlTenant = () => {
   if (typeof window === 'undefined') return '';
 
-  // 1. Path format: /login/:tenant or /tenant/:tenant (excluding generic /login or /login/admin)
+  // 1. Path format: /login/:tenant or /tenant/:tenant
   const path = window.location.pathname;
   const loginMatch = path.match(/^\/login\/([a-zA-Z0-9_\-\.]+)/i);
-  if (loginMatch && loginMatch[1] && loginMatch[1].toLowerCase() !== 'admin') {
+  if (loginMatch && loginMatch[1]) {
     return loginMatch[1].trim();
   }
   const tenantMatch = path.match(/^\/tenant\/([a-zA-Z0-9_\-\.]+)/i);
-  if (tenantMatch && tenantMatch[1] && tenantMatch[1].toLowerCase() !== 'admin') {
+  if (tenantMatch && tenantMatch[1]) {
     return tenantMatch[1].trim();
   }
 
   // 2. Query parameter format: ?tenant=acme or ?tenantId=acme or ?org=acme or ?code=acme
   const searchParams = new URLSearchParams(window.location.search);
   const qTenant = searchParams.get('tenant') || searchParams.get('tenantId') || searchParams.get('org') || searchParams.get('code');
-  if (qTenant && qTenant.trim().toLowerCase() !== 'admin') {
+  if (qTenant) {
     return qTenant.trim();
   }
 
@@ -180,9 +180,13 @@ export default function App() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-session-id': savedSessionId
+            'x-session-id': savedSessionId,
+            ...(explicitTenant ? { 'x-tenant-id': explicitTenant } : {})
           },
-          body: JSON.stringify({ sessionId: savedSessionId })
+          body: JSON.stringify({ 
+            sessionId: savedSessionId,
+            tenantId: explicitTenant || undefined
+          })
         });
 
         const data = await res.json();
@@ -192,14 +196,24 @@ export default function App() {
           // If the URL specifically requests a tenant, verify that the logged-in session matches that tenant
           if (explicitTenant) {
             const explicitNorm = explicitTenant.toLowerCase();
+            const isGlobalAdmin =
+              data.user.role === 'global_admin' ||
+              data.user.role === 'super_admin' ||
+              data.user.isGlobalAdmin ||
+              (data.user.tenantId || '').toLowerCase() === 'admin';
+
             const sessionTenantId = (data.user.tenantId || '').toLowerCase();
             const sessionTenantName = (data.user.tenantName || '').toLowerCase();
             const sessionTenantCode = (data.user.code || '').toLowerCase();
 
-            const isMatchingTenant =
+            let isMatchingTenant =
               sessionTenantId === explicitNorm ||
               sessionTenantName === explicitNorm ||
               sessionTenantCode === explicitNorm;
+
+            if (isGlobalAdmin && explicitNorm === 'admin') {
+              isMatchingTenant = true;
+            }
 
             if (!isMatchingTenant) {
               console.warn(`[Auth] URL tenant "${explicitTenant}" does not match session tenant "${data.user.tenantId}". Switching to login page.`);
@@ -263,14 +277,24 @@ export default function App() {
       const explicitTenant = getExplicitUrlTenant();
       if (explicitTenant && currentUser) {
         const explicitNorm = explicitTenant.toLowerCase();
+        const isGlobalAdmin =
+          currentUser.role === 'global_admin' ||
+          currentUser.role === 'super_admin' ||
+          currentUser.isGlobalAdmin ||
+          (currentUser.tenantId || '').toLowerCase() === 'admin';
+
         const sessionTenantId = (currentUser.tenantId || '').toLowerCase();
         const sessionTenantName = (currentUser.tenantName || '').toLowerCase();
         const sessionTenantCode = (currentUser.code || '').toLowerCase();
 
-        const isMatchingTenant =
+        let isMatchingTenant =
           sessionTenantId === explicitNorm ||
           sessionTenantName === explicitNorm ||
           sessionTenantCode === explicitNorm;
+
+        if (isGlobalAdmin && explicitNorm === 'admin') {
+          isMatchingTenant = true;
+        }
 
         if (!isMatchingTenant) {
           handleLogout('tenant_switch');
@@ -391,12 +415,13 @@ export default function App() {
     if (path === 'grievances' && isGrievanceEnabled && (allowed.length === 0 || allowed.includes('grievances') || allowed.includes('tickets') || allowed.includes('grievance') || allowed.includes('complaints'))) return true;
     if (path === 'ingestion' && (allowed.length === 0 || allowed.includes('ingestion') || allowed.includes('knowledge') || allowed.includes('ingestionManager') || allowed.includes('data') || allowed.includes('crawler') || allowed.includes('overview') || allowed.includes('documents'))) return true;
     if (path === 'analytics' && (allowed.length === 0 || allowed.includes('analytics') || allowed.includes('botAnalytics') || allowed.includes('overview'))) return true;
+    if (path === 'performance' && (allowed.length === 0 || allowed.includes('performance') || allowed.includes('botPerformance') || allowed.includes('telemetry') || allowed.includes('overview'))) return true;
     if (path === 'conversations' && (allowed.length === 0 || allowed.includes('conversations') || allowed.includes('conversationHistory'))) return true;
     if (path === 'chat' && (allowed.length === 0 || allowed.includes('chat') || allowed.includes('playground'))) return true;
     if (path === 'playground' && (allowed.length === 0 || allowed.includes('chat') || allowed.includes('playground'))) return true;
 
     // Fallback: grant standard tenant features
-    return [isGrievanceEnabled ? 'grievances' : null, 'analytics', 'ingestion', 'conversations', 'chat'].filter(Boolean).includes(path);
+    return [isGrievanceEnabled ? 'grievances' : null, 'analytics', 'performance', 'ingestion', 'conversations', 'chat'].filter(Boolean).includes(path);
   };
 
   const filteredAdminRoutes = adminRoutes.filter(r => isPathAllowed(r.path));

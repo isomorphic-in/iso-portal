@@ -8,23 +8,45 @@ import TablePagination from "../../../components/TablePagination";
 import { apiUrl } from "../../../config/api";
 
 const ALL_AVAILABLE_WIDGETS = [
-  { id: 'total_questions', title: 'Total Questions', category: 'KPI Card', description: 'Total volume of user queries processed' },
-  { id: 'total_sessions', title: 'Total Sessions', category: 'KPI Card', description: 'Unique conversation sessions initiated' },
-  { id: 'avg_questions_day', title: 'Avg. Questions / Day', category: 'KPI Card', description: 'Daily question processing rate' },
-  { id: 'avg_questions_session', title: 'Avg. Questions / Session', category: 'KPI Card', description: 'Average turns per conversation' },
-  { id: 'avg_session_length', title: 'Avg. Session Length', category: 'KPI Card', description: 'Mean duration of chat sessions' },
-  { id: 'csat_score', title: 'CSAT (Satisfaction)', category: 'KPI Card', description: 'Customer satisfaction score (4-5 stars)' },
-  { id: 'thumbs_up_score', title: 'Thumbs Up Ratio', category: 'KPI Card', description: 'Positive feedback ratio from ratings' },
-  { id: 'avg_latency', title: 'Avg. Response Latency', category: 'KPI Card', description: 'Model retrieval and response latency in ms' },
-  { id: 'token_usage', title: 'Token Consumption', category: 'KPI Card', description: 'LLM prompt and completion tokens' },
-  { id: 'daily_trend_chart', title: 'Daily Trend Graph', category: 'Graph / Chart', description: 'Interactive area/line trend chart' },
-  { id: 'top_intents_chart', title: 'Top Intents Breakdown', category: 'Graph / Chart', description: 'Ranked query intent distribution bars' },
-  { id: 'sentiment_donut_chart', title: 'Sentiment Donut Chart', category: 'Graph / Chart', description: 'Circular sentiment and rating breakdown' },
-  { id: 'hourly_heatmap_chart', title: '24-Hour Peak Activity', category: 'Graph / Chart', description: 'Hourly inquiry load histogram' },
-  { id: 'csat_breakdown_chart', title: 'Star Rating Distribution', category: 'Graph / Chart', description: '1-star to 5-star breakdown' },
-  { id: 'top_queries_table', title: 'Top Inquiries Table', category: 'Data Table', description: 'Searchable top asked questions table' },
-  { id: 'recent_sessions_table', title: 'Recent Sessions Table', category: 'Data Table', description: 'Live session durations and status log' }
+  // Bot Analytics Widgets
+  { id: 'total_questions', title: 'Total Inquiries (Analytics)', category: 'Analytics KPI', description: 'Total volume of user queries processed' },
+  { id: 'total_sessions', title: 'Total Sessions (Analytics)', category: 'Analytics KPI', description: 'Unique conversation sessions initiated' },
+  { id: 'avg_questions_day', title: 'Inquiry Velocity / Day', category: 'Analytics KPI', description: 'Daily question processing velocity' },
+  { id: 'avg_questions_session', title: 'Conversation Depth', category: 'Analytics KPI', description: 'Average turns per conversation exchange' },
+  { id: 'avg_session_length', title: 'Avg. Engagement Time', category: 'Analytics KPI', description: 'Mean duration of chat interactions' },
+  { id: 'csat_score', title: 'CSAT Satisfaction Score', category: 'Analytics KPI', description: 'Customer satisfaction score (4-5 stars)' },
+  { id: 'thumbs_up_score', title: 'Positive Feedback Ratio', category: 'Analytics KPI', description: 'Positive thumbs-up agreement ratio' },
+  { id: 'resolution_rate', title: 'Resolution Rate', category: 'Analytics KPI', description: 'First-contact inquiry resolution percentage' },
+  { id: 'active_users', title: 'Active Inquiring Visitors', category: 'Analytics KPI', description: 'Distinct user count across time period' },
+  { id: 'daily_trend_chart', title: 'Inquiry Volume Timeline', category: 'Analytics Chart', description: 'Daily question & session trend area/line chart' },
+  { id: 'top_intents_chart', title: 'Top Query Intents Breakdown', category: 'Analytics Chart', description: 'Ranked semantic intent category distribution' },
+  { id: 'sentiment_donut_chart', title: 'Sentiment Donut Chart', category: 'Analytics Chart', description: 'Dialogue tone and satisfaction breakdown' },
+  { id: 'hourly_heatmap_chart', title: '24-Hour Peak Inquiries', category: 'Analytics Chart', description: 'Hourly inquiry load histogram' },
+  { id: 'csat_breakdown_chart', title: 'Star Rating Distribution', category: 'Analytics Chart', description: '1-star to 5-star direct rating breakdown' },
+  { id: 'query_length_chart', title: 'Query Complexity Distribution', category: 'Analytics Chart', description: 'Word length & phrasing depth breakdown' },
+  { id: 'top_queries_table', title: 'Top Inquiries Table', category: 'Analytics Table', description: 'Searchable top asked questions table' },
+  { id: 'recent_sessions_table', title: 'Recent Sessions Log Table', category: 'Analytics Table', description: 'Live session durations and ratings log' },
+
+  // Bot Performance Widgets
+  { id: 'avg_response_latency', title: 'Avg. Response Latency', category: 'Performance KPI', description: 'Mean end-to-end model and network response time' },
+  { id: 'ttft_metric', title: 'Time to First Token (TTFT)', category: 'Performance KPI', description: 'Initial streaming token response time' },
+  { id: 'throughput_metric', title: 'Inference Throughput (Tok/s)', category: 'Performance KPI', description: 'LLM token generation velocity per second' },
+  { id: 'vector_latency', title: 'Vector KNN Retrieval Speed', category: 'Performance KPI', description: 'Atlas vector search query duration' },
+  { id: 'uptime_sla', title: 'System Availability SLA', category: 'Performance KPI', description: 'Uptime percentage compliance' },
+  { id: 'cache_hit_ratio', title: 'Cache Hit Ratio', category: 'Performance KPI', description: 'Redis and semantic cache hit rate' },
+  { id: 'error_rate', title: 'Error & Fallback Rate', category: 'Performance KPI', description: 'Pipeline timeout and exception percentage' },
+  { id: 'tail_latency', title: 'Tail Latency (P95 / P99)', category: 'Performance KPI', description: 'High-load response percentiles' },
+  { id: 'cost_burn', title: 'Token Cost & Budget Burn', category: 'Performance KPI', description: 'Estimated dollar cost based on token usage' },
+  { id: 'latency_timeline_chart', title: 'Latency Percentiles Timeline', category: 'Performance Chart', description: 'Multi-series chart tracking Avg, P95, and Vector latency' },
+  { id: 'latency_waterfall_chart', title: 'Pipeline Latency Waterfall', category: 'Performance Chart', description: 'Decomposition across Embedding, DB, and LLM' },
+  { id: 'cache_breakdown_chart', title: 'Cache Efficiency Breakdown', category: 'Performance Chart', description: 'Redis vs Semantic vs Direct completion split' },
+  { id: 'latency_histogram_chart', title: 'Latency Buckets Histogram', category: 'Performance Chart', description: 'Distribution across speed tiers' },
+  { id: 'error_classification_chart', title: 'Reliability & Error Class', category: 'Performance Chart', description: 'Failure categories and recovery status' },
+  { id: 'concurrency_gauge', title: 'Worker Concurrency Load', category: 'Performance Chart', description: 'Active thread pool and queue saturation' },
+  { id: 'api_endpoints_table', title: 'API Endpoints Health Table', category: 'Performance Table', description: 'Endpoint latencies, P95, and error rates' },
+  { id: 'slowest_queries_table', title: 'Slow Queries Tracing Table', category: 'Performance Table', description: 'Bottleneck tracing for slow vector queries' }
 ];
+
 
 export default function GlobalRolesTab({ showToast }) {
   const [roles, setRoles] = useState([]);

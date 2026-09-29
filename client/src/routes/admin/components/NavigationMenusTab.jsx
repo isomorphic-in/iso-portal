@@ -2,9 +2,10 @@ import React, { useState, useEffect, useMemo } from "react";
 import { 
   Building2, Bot, BarChart3, Database, Shield, Settings, 
   Plus, Trash2, Edit3, Check, X, Loader2, Save, Eye, EyeOff,
-  Search, ArrowUpDown, ArrowUp, ArrowDown
+  Search, ArrowUpDown, ArrowUp, ArrowDown, Zap, Ticket, Activity
 } from "lucide-react";
 import ConfirmModal from "../../../components/ConfirmModal";
+
 import TablePagination from "../../../components/TablePagination";
 import { apiUrl } from "../../../config/api";
 
@@ -242,12 +243,16 @@ export default function NavigationMenusTab({ showToast }) {
     switch (iconName) {
       case "Building2": return <Building2 size={15} className="text-iso-primary" />;
       case "BarChart3": return <BarChart3 size={15} className="text-emerald-600" />;
+      case "Zap": return <Zap size={15} className="text-amber-500" />;
+      case "Activity": return <Activity size={15} className="text-blue-500" />;
       case "Database": return <Database size={15} className="text-indigo-600" />;
       case "Bot": return <Bot size={15} className="text-purple-600" />;
       case "Shield": return <Shield size={15} className="text-blue-600" />;
+      case "Ticket": return <Ticket size={15} className="text-amber-600" />;
       default: return <Settings size={15} className="text-slate-600" />;
     }
   };
+
 
   return (
     <div className="flex flex-col gap-6">
@@ -493,11 +498,14 @@ export default function NavigationMenusTab({ showToast }) {
                     <option value="Ticket">Ticket (Grievances & Tickets)</option>
                     <option value="Building2">Building2 (Tenants)</option>
                     <option value="BarChart3">BarChart3 (Analytics)</option>
+                    <option value="Zap">Zap (Bot Performance)</option>
+                    <option value="Activity">Activity (Monitoring)</option>
                     <option value="Database">Database (Ingestion)</option>
                     <option value="Bot">Bot (Chatbots)</option>
                     <option value="Shield">Shield (Security/Roles)</option>
                     <option value="Settings">Settings (Config)</option>
                   </select>
+
                 </div>
                 <div>
                   <label className="text-[10px] uppercase font-mono tracking-wider text-iso-textMuted block mb-1 font-semibold">Sort Order</label>
