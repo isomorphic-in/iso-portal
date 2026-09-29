@@ -15,7 +15,7 @@ const DEFAULT_THEME = {
   instituteName: '',
   logoBigUrl: '',
   logoSmallUrl: '',
-  faviconUrl: '',
+  faviconUrl: '/isomorphic-icon.png',
   backgroudImageUrl: ''
 };
 
@@ -36,6 +36,57 @@ function adjustColorBrightness(hex, percent) {
   const G = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amt));
   const B = Math.min(255, Math.max(0, (num & 0x0000FF) + amt));
   return '#' + (0x1000000 + (R << 16) + (G << 8) + B).toString(16).slice(1);
+}
+
+/**
+ * Update browser tab favicon dynamically and bypass aggressive browser caching
+ * @param {string} iconUrl - The favicon URL or path
+ */
+export function updateFavicon(iconUrl) {
+  if (typeof document === 'undefined') return;
+
+  const targetUrl = (iconUrl && typeof iconUrl === 'string' && iconUrl.trim() !== '')
+    ? iconUrl.trim()
+    : '/isomorphic-icon.png';
+
+  try {
+    // Determine mime type
+    let mimeType = 'image/png';
+    const cleanUrl = targetUrl.split('?')[0].toLowerCase();
+    if (cleanUrl.endsWith('.ico')) mimeType = 'image/x-icon';
+    else if (cleanUrl.endsWith('.svg')) mimeType = 'image/svg+xml';
+    else if (cleanUrl.endsWith('.webp')) mimeType = 'image/webp';
+    else if (cleanUrl.endsWith('.jpg') || cleanUrl.endsWith('.jpeg')) mimeType = 'image/jpeg';
+    else if (cleanUrl.endsWith('.gif')) mimeType = 'image/gif';
+
+    // Remove existing favicon links to force browser repaint
+    const existingLinks = document.querySelectorAll("link[rel*='icon'], link[rel='apple-touch-icon']");
+    existingLinks.forEach(el => {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    });
+
+    // Create fresh standard icon link
+    const newIcon = document.createElement('link');
+    newIcon.rel = 'icon';
+    newIcon.type = mimeType;
+    newIcon.href = targetUrl;
+    document.head.appendChild(newIcon);
+
+    // Create shortcut icon link (for Safari & older engines)
+    const shortcutIcon = document.createElement('link');
+    shortcutIcon.rel = 'shortcut icon';
+    shortcutIcon.type = mimeType;
+    shortcutIcon.href = targetUrl;
+    document.head.appendChild(shortcutIcon);
+
+    // Create Apple touch icon link
+    const appleIcon = document.createElement('link');
+    appleIcon.rel = 'apple-touch-icon';
+    appleIcon.href = targetUrl;
+    document.head.appendChild(appleIcon);
+  } catch (e) {
+    console.warn('[Theme] Error updating favicon:', e);
+  }
 }
 
 /**
@@ -82,20 +133,12 @@ export function applyTenantTheme(tenantConfig = {}, tenantInfo = {}) {
     root.style.setProperty('--iso-login-bg', cfg.loginBackgroundColor);
   }
 
-  // Update Favicon if provided
-  if (cfg.faviconUrl && cfg.faviconUrl.trim() !== '') {
-    try {
-      let faviconLink = document.querySelector("link[rel*='icon']");
-      if (!faviconLink) {
-        faviconLink = document.createElement('link');
-        faviconLink.rel = 'shortcut icon';
-        document.head.appendChild(faviconLink);
-      }
-      faviconLink.href = cfg.faviconUrl.trim();
-    } catch (e) {
-      console.warn('[Theme] Error updating favicon:', e);
-    }
-  }
+  // Update Favicon (falls back to small logo or default isomorphic icon)
+  const resolvedFavicon = (cfg.faviconUrl && cfg.faviconUrl.trim() !== '')
+    ? cfg.faviconUrl.trim()
+    : ((cfg.logoSmallUrl && cfg.logoSmallUrl.trim() !== '') ? cfg.logoSmallUrl.trim() : '/isomorphic-icon.png');
+  
+  updateFavicon(resolvedFavicon);
 
   // Update Document Title with Institute Name
   const instituteName = cfg.instituteName || tenantInfo.tenantName || tenantInfo.name;

@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import { 
   X, Building2, Sliders, Palette, Image as ImageIcon, 
   CheckCircle, Code, Save, Loader2, Bot as BotIcon, Eye,
-  Sparkles, Globe, RefreshCw
+  Sparkles, Globe, RefreshCw, Copy, ExternalLink, Check
 } from "lucide-react";
 import { apiUrl } from "../../../config/api";
+import { updateFavicon } from "../../../utils/theme";
 
 const TIMEZONE_OPTIONS = [
   "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
@@ -390,29 +391,164 @@ export default function TenantModal({
                 </div>
               </div>
 
-              {/* Sidebar Small Logo & Favicon */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-3 bg-iso-bg border border-iso-border rounded-sm flex flex-col gap-2">
-                  <label className="text-[10px] uppercase font-mono tracking-wider text-iso-textMuted font-semibold">Sidebar / Small Logo URL</label>
-                  <input type="url" value={cfg.logoSmallUrl || ""} onChange={(e) => updateConfigField("logoSmallUrl", e.target.value)} placeholder="https://.../small-logo.png" className="w-full bg-iso-cardBg border border-iso-border rounded px-3 py-1.5 text-xs text-iso-text outline-none font-mono" />
+              {/* Sidebar Small Logo */}
+              <div className="p-4 bg-iso-bg border border-iso-border rounded-sm flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="text-xs font-bold text-iso-primary block">Sidebar / Compact Brand Logo URL</label>
+                    <p className="text-[11px] text-iso-textMuted">Displayed at top left of navigation drawer &amp; collapsed mobile headers.</p>
+                  </div>
                   {cfg.logoSmallUrl && (
-                    <div className="h-8 flex items-center gap-2 mt-1">
-                      <span className="text-[10px] text-iso-textMuted font-mono">Preview:</span>
-                      <img src={cfg.logoSmallUrl} alt="Small logo preview" referrerPolicy="no-referrer" className="h-6 object-contain" />
-                    </div>
+                    <button 
+                      type="button" 
+                      onClick={() => updateConfigField("logoSmallUrl", "")} 
+                      className="text-[10px] text-iso-error hover:underline cursor-pointer"
+                    >
+                      Clear Small Logo
+                    </button>
                   )}
                 </div>
 
-                <div className="p-3 bg-iso-bg border border-iso-border rounded-sm flex flex-col gap-2">
-                  <label className="text-[10px] uppercase font-mono tracking-wider text-iso-textMuted font-semibold">Favicon URL (.ico / .png)</label>
-                  <input type="url" value={cfg.faviconUrl || ""} onChange={(e) => updateConfigField("faviconUrl", e.target.value)} placeholder="https://.../favicon.ico" className="w-full bg-iso-cardBg border border-iso-border rounded px-3 py-1.5 text-xs text-iso-text outline-none font-mono" />
-                  {cfg.faviconUrl && (
-                    <div className="h-8 flex items-center gap-2 mt-1">
-                      <span className="text-[10px] text-iso-textMuted font-mono">Preview:</span>
-                      <img src={cfg.faviconUrl} alt="Favicon preview" referrerPolicy="no-referrer" className="w-4 h-4 object-contain" />
-                    </div>
-                  )}
+                <div className="flex flex-col md:flex-row items-center gap-4">
+                  <div className="flex-1 w-full">
+                    <input 
+                      type="url" 
+                      value={cfg.logoSmallUrl || ""} 
+                      onChange={(e) => updateConfigField("logoSmallUrl", e.target.value)} 
+                      placeholder="https://example.com/branding/small-logo.png" 
+                      className="w-full bg-iso-cardBg border border-iso-border focus:border-iso-accent rounded px-3 py-2 text-xs text-iso-text outline-none font-mono" 
+                    />
+                  </div>
+                  <div className="w-32 h-14 border border-dashed border-iso-border rounded flex items-center justify-center p-2 bg-iso-cardBg shrink-0 overflow-hidden">
+                    {cfg.logoSmallUrl ? (
+                      <img 
+                        src={cfg.logoSmallUrl} 
+                        alt="Small Logo Preview" 
+                        referrerPolicy="no-referrer"
+                        className="max-h-full max-w-full object-contain"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    ) : (
+                      <span className="text-[10px] text-iso-textMuted font-mono italic">No small logo</span>
+                    )}
+                  </div>
                 </div>
+              </div>
+
+              {/* Comprehensive Browser Favicon Section */}
+              <div className="p-4 bg-iso-bg border border-iso-border rounded-sm flex flex-col gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <label className="text-xs font-bold text-iso-primary flex items-center gap-1.5">
+                      <Globe size={13} className="text-iso-accent" />
+                      Browser Tab Favicon URL (.ico / .png / .svg / .webp)
+                    </label>
+                    <p className="text-[11px] text-iso-textMuted">
+                      Appears in browser tabs, bookmarks bar, and shortcut icons across all user devices.
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {cfg.logoSmallUrl && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateConfigField("faviconUrl", cfg.logoSmallUrl);
+                          if (showToast) showToast("Copied small logo URL to favicon.");
+                        }}
+                        className="px-2 py-1 bg-iso-bgSecondary hover:bg-iso-cardBg border border-iso-border rounded text-[11px] font-mono text-iso-text flex items-center gap-1 cursor-pointer transition-colors"
+                        title="Use Small Logo URL as Favicon"
+                      >
+                        <Copy size={11} />
+                        Use Small Logo
+                      </button>
+                    )}
+                    
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const iconToTest = cfg.faviconUrl || cfg.logoSmallUrl || '/isomorphic-icon.png';
+                        updateFavicon(iconToTest);
+                        if (showToast) showToast("Live preview: Tab favicon updated in your browser!");
+                      }}
+                      className="px-2 py-1 bg-iso-primary/10 hover:bg-iso-primary/20 text-iso-primary border border-iso-primary/30 rounded text-[11px] font-mono font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                      title="Test how this icon looks in your current browser tab right now"
+                    >
+                      <RefreshCw size={11} />
+                      Test in Browser Tab
+                    </button>
+
+                    {cfg.faviconUrl && (
+                      <button
+                        type="button"
+                        onClick={() => updateConfigField("faviconUrl", "")}
+                        className="text-[11px] text-iso-error hover:underline cursor-pointer ml-1"
+                      >
+                        Reset to Default
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Favicon URL Input */}
+                <div>
+                  <input
+                    type="url"
+                    value={cfg.faviconUrl || ""}
+                    onChange={(e) => updateConfigField("faviconUrl", e.target.value)}
+                    placeholder="https://example.com/branding/favicon.ico or .png"
+                    className="w-full bg-iso-cardBg border border-iso-border focus:border-iso-accent rounded px-3 py-2 text-xs text-iso-text outline-none font-mono"
+                  />
+                </div>
+
+                {/* Live Browser Tab Preview Mockup */}
+                <div className="mt-1 bg-slate-900 rounded-md border border-slate-700/80 p-3 flex flex-col gap-2.5 shadow-inner">
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
+                    <span className="uppercase tracking-wider font-semibold text-slate-300 flex items-center gap-1">
+                      <Eye size={11} /> Browser Tab Rendering Mockup
+                    </span>
+                    <span className="text-slate-500">32x32 / 64x64 / SVG</span>
+                  </div>
+
+                  {/* Browser Chrome Bar Mockup */}
+                  <div className="bg-slate-800/90 rounded border border-slate-700 p-2 flex flex-col gap-2">
+                    {/* Top Tab Strip */}
+                    <div className="flex items-center gap-1">
+                      {/* Active Mock Tab */}
+                      <div className="bg-slate-900 text-slate-100 border-t border-l border-r border-slate-600 rounded-t px-3 py-1.5 flex items-center gap-2 max-w-xs shadow-sm">
+                        <img
+                          src={cfg.faviconUrl || cfg.logoSmallUrl || "/isomorphic-icon.png"}
+                          alt="Tab Favicon"
+                          referrerPolicy="no-referrer"
+                          className="w-4 h-4 object-contain shrink-0"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "/isomorphic-icon.png";
+                          }}
+                        />
+                        <span className="text-xs font-sans font-medium text-slate-200 truncate">
+                          {cfg.instituteName || formData.tenantName || "Organization"} | Isomorphic Portal
+                        </span>
+                        <span className="text-slate-400 text-[10px] hover:text-slate-200 cursor-default ml-1">✕</span>
+                      </div>
+
+                      {/* Inactive Dummy Tab */}
+                      <div className="text-slate-400 px-3 py-1.5 text-xs font-sans truncate hidden sm:flex items-center gap-2 opacity-60">
+                        <span className="w-3 h-3 rounded-full bg-slate-600 inline-block"></span>
+                        <span className="text-[11px]">Analytics Dashboard</span>
+                      </div>
+                    </div>
+
+                    {/* Address / URL Bar */}
+                    <div className="bg-slate-900/90 rounded border border-slate-700/80 px-3 py-1 flex items-center gap-2 text-[11px] font-mono text-slate-300">
+                      <span className="text-emerald-400 text-xs">🔒</span>
+                      <span className="text-slate-500">https://</span>
+                      <span className="text-emerald-300 font-bold">{(formData.tenantId || formData.code || "tenant").toLowerCase().trim()}.isomorphic.in</span>
+                      <span className="text-slate-500">/dashboard</span>
+                    </div>
+                  </div>
+                </div>
+
               </div>
 
             </div>

@@ -17,7 +17,7 @@
   const DEFAULT_CONFIG_API_URL = `${HOSTED_MIDDLEWARE_URL}/api/bot-config`;
   const DEFAULT_CHAT_API_URL = `${HOSTED_MIDDLEWARE_URL}/api/chat`;
 
-  // Sleek Chatbot Bubble SVG
+  // Sleek Chatbot Bubble SVG (Used across Launcher, Header, and Bot Avatars)
   const CHAT_LAUNCHER_SVG = `
     <svg class="iso-chat-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
       <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -26,48 +26,38 @@
   const ISO_LOGO_SVG = CHAT_LAUNCHER_SVG;
 
   // --------------------------------------------------------
-  // 1. DEFAULT CONFIGURATION
+  // 1. DEFAULT CONFIGURATION (Based on MongoDB Atlas Schema)
   // --------------------------------------------------------
   const DEFAULT_CONFIG = {
     _id: "6a97bb88eabe0901e52bb290",
     botId: "ISOBot",
     tenantId: "onestop",
     teanantId: "onestop",
-    botName: "ISO Bot",
+    botName: "Student Services AI",
     chatApiUrl: DEFAULT_CHAT_API_URL,
     updatedSince: "2026-09-01T07:45:06.258Z",
     greetingMessage: [
-      "Hi! I’m ISO, your AI assistant. I specialize in helping students with their questions and solving common academic or technology-related issues. How can I assist you today?"
+      "Welcome to Student Services AI! I am here to assist you with academic advising, course registration, financial aid, admissions deadlines, and campus technology support. How may I help you today?"
     ],
     botActive: true,
-    enableTicketing: true,
-    ticketingConfig: {
-      enabled: true,
-      defaultDepartment: "General Support",
-      defaultPriority: "medium",
-      slaHours: 48,
-      requireStudentId: false,
-      notificationEmail: "",
-      escalationMessage: "I am connecting you with our support team. Please complete your details below to create a support ticket:"
-    },
     customForms: [
       {
         type: "form",
         name: "transferCall",
-        intent: ["transfer_call", "ticket", "grievance", "talk to human", "live agent"],
+        intent: ["transfer_call", "transfer_to_agent", "advisor", "speak_to_human", "contact_advisor"],
         status: "enabled",
-        title: "Create Support Ticket / Request Assistance",
+        title: "Connect with a Student Support Advisor",
         showCancelledButton: true,
         payload: {
           fields: [
             { title: "Full Name", name: "FullName", type: "text", validate: { required: true } },
-            { title: "Email Address", name: "Email", type: "email", validate: { required: true, email: true } },
-            { title: "Phone Number", name: "Phone", type: "tel", validate: { required: true } },
-            { title: "Username / Student ID (Optional)", name: "username", type: "text", validate: { required: false } },
-            { title: "Issue Details & Summary", name: "AdditionalInformation", type: "textarea", validate: { required: true } },
+            { title: "Institutional Email", name: "Email", type: "text", validate: { required: true, email: true } },
+            { title: "Phone Number", name: "Phone", type: "text", validate: { required: true } },
+            { title: "Student ID Number (Optional)", name: "username", type: "text", validate: { required: false } },
+            { title: "Inquiry Details & Academic Department", name: "AdditionalInformation", type: "textarea", validate: { required: false } },
             { title: "Escalated", name: "status", type: "hidden", validate: { required: false } }
           ],
-          submitButtonTitle: "Submit Ticket",
+          submitButtonTitle: "Submit Advisor Request",
           postbackUrl: "",
           method: "POST"
         }
@@ -77,17 +67,17 @@
         name: "survey",
         intent: ["smalltalk.greetings.bye", "end_chat"],
         status: "enabled",
-        title: "Post Chat Survey & Feedback",
+        title: "Student Support Feedback & Evaluation",
         showCancelledButton: false,
         showDownloadButton: true,
         payload: {
           fields: [
-            { title: "Rating", name: "rating", type: "rating", validate: { required: true } },
-            { title: "Feedback Comments", name: "feedback", type: "textarea", validate: { required: false } },
+            { title: "How would you rate your support experience?", name: "rating", type: "rating", validate: { required: true } },
+            { title: "Comments or suggestions to improve our student services", name: "feedback", type: "textarea", validate: { required: false } },
             { title: "Closed", name: "status", type: "hidden", validate: { required: false } }
           ],
           submitButtonTitle: "Submit Feedback",
-          downloadTranscriptButtonTitle: "Download Transcript",
+          downloadTranscriptButtonTitle: "Download Support Transcript",
           postbackUrl: "",
           method: "POST"
         }
@@ -103,14 +93,20 @@
       userQueryFontColor: "#FFFFFF",
       bgColor: "#F8FAFC",
       logoUrl: "https://bbh-product-bucket.s3.us-east-2.amazonaws.com/a04ac944-0efc-4f92-84cd-9463c94f0505.png",
-      botHeaderText: "Isomorphic AI",
-      botStatusText: "Online",
-      DefaultEmptyMessage: "Type your message...",
+      botHeaderText: "Student Services AI",
+      botStatusText: "Campus Support Online",
+      DefaultEmptyMessage: "Type your academic or campus question...",
       helpNotificationRenderTime: 10000,
-      helpNotificationRenderMsg: "Hi! I am CoolBot, an AI chatbot. I can provide answers to your technology questions and resources to resolve some of the most common issues.",
+      helpNotificationRenderMsg: "Welcome to Student Services AI. I can assist with admissions, financial aid, advising, and campus IT help.",
       idleStatMessages: [
-        { message: "I’m waiting for your next question", time: 180 },
-        { message: "Since there was no response, we are ending this chat session. Please re-initiate anytime.", time: 240 }
+        {
+          message: "Are you still with us? Please let me know if you need any additional campus assistance.",
+          time: 180
+        },
+        {
+          message: "This student support session has ended due to inactivity. Please initiate a new session whenever you are ready.",
+          time: 240
+        }
       ],
       chatPosition: "fixed",
       chatPositionLeft: "auto",
@@ -124,29 +120,30 @@
       chatMobileIconHeight: "70",
       chatMobileVerticalIconWidth: "90",
       chatMobileVerticalIconHeight: "90",
-      chatIconAltText: "Chat with Us",
-      chatIconTitleText: "Chat with Us",
+      chatIconAltText: "Student Services Assistant",
+      chatIconTitleText: "Student Services Assistant",
       allowMultiLangSupport: false,
-      enableStreaming: true,
+      demoBackgroundUrl: "",
       likeIcon: "https://bbh-product-bucket.s3.us-east-2.amazonaws.com/dba2acac-c841-47b7-be3f-106ed4b66fef.png",
       dislikeIcon: "https://bbh-product-bucket.s3.us-east-2.amazonaws.com/a91652f3-c1f1-4396-8aab-45793777ef09.png",
-      botChatSubmitButton: true,
+      botChatSubmitButton: false,
       isChatOpened: false,
-      transferFormDelay: 1,
+      transferFormDelay: 5,
       showThumbUpDownFeedbackform: true,
       showHelpButton: true,
       helpButtonUrl: "https://vsc.blackbelthelp.com/help",
-      poweredBy: "AI powered by <span>Isomorphic</span>",
+      poweredBy: "AI Student Services by <span>Isomorphic</span>",
       notifications: []
     },
     apiEndpoint: "",
     configEndpoint: "",
     persistHistory: false,
     quickReplies: [
-      "Academic Assistance",
-      "Technology Support",
-      "Transfer to Live Agent",
-      "End Chat Session"
+      "Academic Advising & Registration",
+      "Financial Aid & FAFSA Guidance",
+      "Admissions & Enrollment Status",
+      "Campus IT & LMS Troubleshooting",
+      "Connect with Campus Advisor"
     ]
   };
 
@@ -157,8 +154,6 @@
   let isTyping = false;
   let chatHistory = [];
   let isSessionEnded = false;
-  let currentSpeakingUtterance = null;
-  let activeSpeechBtn = null;
 
   // Timers
   let helpNotificationTimer = null;
@@ -174,8 +169,6 @@
   let chatBody = null;
   let textInput = null;
   let sendButton = null;
-  let micButton = null;
-  let scrollBottomBtn = null;
   let helpNotificationEl = null;
 
   // --------------------------------------------------------
@@ -217,6 +210,15 @@
     return yiq >= 128 ? fallbackDark : fallbackLight;
   }
 
+  function sanitizeBsonString(str) {
+    if (typeof str !== "string") return str;
+    return str
+      .replace(/ObjectId\(['"]([0-9a-fA-F]+)['"]\)/g, '"$1"')
+      .replace(/NumberInt\(['"]?([0-9]+)['"]?\)/g, "$1")
+      .replace(/NumberLong\(['"]?([0-9]+)['"]?\)/g, "$1")
+      .replace(/ISODate\(['"]([^'"]+)['"]\)/g, '"$1"');
+  }
+
   function deepMerge(target, source) {
     const output = Object.assign({}, target);
     if (isObject(target) && isObject(source)) {
@@ -230,7 +232,7 @@
             output[key] = deepMerge(target[key], source[key]);
           }
         } else {
-          output[key] = source[key];
+          Object.assign(output, { [key]: source[key] });
         }
       });
     }
@@ -248,7 +250,7 @@
       ui.helpNotificationRenderTime = parseMongoNumber(ui.helpNotificationRenderTime, 10000);
     }
     if (ui.transferFormDelay !== undefined) {
-      ui.transferFormDelay = parseMongoNumber(ui.transferFormDelay, 1);
+      ui.transferFormDelay = parseMongoNumber(ui.transferFormDelay, 5);
     }
     if (Array.isArray(ui.idleStatMessages)) {
       ui.idleStatMessages.forEach(item => {
@@ -269,16 +271,7 @@
       if (loadedData.botId) config.botId = loadedData.botId;
     }
 
-    if (loadedData.enableTicketing !== undefined) {
-      config.enableTicketing = Boolean(loadedData.enableTicketing);
-    }
-    if (loadedData.ticketingConfig) {
-      config.ticketingConfig = deepMerge(config.ticketingConfig || {}, loadedData.ticketingConfig);
-      if (config.ticketingConfig.enabled !== undefined) {
-        config.enableTicketing = Boolean(config.ticketingConfig.enabled);
-      }
-    }
-
+    // Explicitly sync greetingMessage from loaded document (MongoDB sends it at root level)
     if (loadedData.greetingMessage) {
       config.greetingMessage = loadedData.greetingMessage;
       if (!config.botUIConfigs) config.botUIConfigs = {};
@@ -295,58 +288,92 @@
       config.apiEndpoint = config.chatApiUrl;
     }
 
-    // Filter quickReplies if ticketing is disabled
-    if (config.enableTicketing === false) {
-      config.quickReplies = (config.quickReplies || []).filter(r => !/transfer|live agent|ticket|grievance/i.test(r));
+    // Ensure welcomeMessage and greetingMessage stay synchronized in botUIConfigs
+    const ui = config.botUIConfigs || {};
+    if (ui.welcomeMessage && (!ui.greetingMessage || ui.greetingMessage.length === 0)) {
+      ui.greetingMessage = Array.isArray(ui.welcomeMessage) ? ui.welcomeMessage : [ui.welcomeMessage];
+    } else if (ui.greetingMessage && ui.greetingMessage.length > 0 && !ui.welcomeMessage) {
+      ui.welcomeMessage = Array.isArray(ui.greetingMessage) ? ui.greetingMessage[0] : ui.greetingMessage;
     }
   }
 
   // --------------------------------------------------------
-  // 3. API CONFIG LOADER
+  // 3. API CALLER INSIDE CHATBOT.JS (Executes First)
   // --------------------------------------------------------
-  async function fetchBotConfiguration() {
-    let scriptBotId = null;
-    let scriptTenantId = null;
-    const currentScript = document.currentScript || 
-      document.querySelector("script[src*='chatbot.js']") || 
-      document.getElementById('iso-chatbot-script');
+  async function fetchConfigFromAPI() {
+    const currentScript = document.currentScript;
+    let botId = config.botId;
+    let tenantId = config.tenantId;
+    let apiEndpoint = DEFAULT_CONFIG_API_URL;
 
     if (currentScript) {
-      scriptBotId = currentScript.getAttribute("data-bot-id") || currentScript.getAttribute("data-botid") || currentScript.getAttribute("data-bot");
-      scriptTenantId = currentScript.getAttribute("data-tenant-id") || currentScript.getAttribute("data-tenantid") || currentScript.getAttribute("data-tenant") || currentScript.getAttribute("data-teanant-id");
-      const chatApi = currentScript.getAttribute("data-chat-api") || currentScript.getAttribute("data-api-endpoint");
+      botId = currentScript.getAttribute("data-bot-id") || botId;
+      tenantId = currentScript.getAttribute("data-tenant-id") ||
+                 currentScript.getAttribute("data-teanant-id") ||
+                 tenantId;
+      apiEndpoint = currentScript.getAttribute("data-api-url") ||
+                    currentScript.getAttribute("data-config-endpoint") ||
+                    apiEndpoint;
+
+      const chatApi = currentScript.getAttribute("data-chat-api") ||
+                      currentScript.getAttribute("data-chat-endpoint") ||
+                      currentScript.getAttribute("data-query-api");
       if (chatApi) {
         config.chatApiUrl = chatApi;
         config.apiEndpoint = chatApi;
       }
+
+      // Handle any inline JSON on the script tag as early override
+      try {
+        const scriptText = currentScript.innerHTML.trim();
+        if (scriptText) {
+          const sanitized = sanitizeBsonString(scriptText);
+          const parsed = JSON.parse(sanitized);
+          applyLoadedConfig(parsed);
+        }
+      } catch (e) {
+        // Continue if no inline JSON
+      }
     }
 
-    let botId = scriptBotId || window.botId || (window.botSettings && window.botSettings.botId) || config.botId;
-    let tenantId = scriptTenantId || window.tenantId || window.teanantId || (window.botSettings && (window.botSettings.tenantId || window.botSettings.teanantId)) || config.tenantId;
     config.botId = botId;
     config.tenantId = tenantId;
     config.teanantId = tenantId;
 
-    let apiEndpoint = DEFAULT_CONFIG_API_URL;
-    if (config.configEndpoint) apiEndpoint = config.configEndpoint;
+    // Check if client provided window.botSettings or window.botUIConfigs
+    if (window.botSettings) {
+      applyLoadedConfig(window.botSettings);
+    } else if (window.botUIConfigs) {
+      applyLoadedConfig({ botUIConfigs: window.botUIConfigs });
+    }
 
-    try {
-      const separator = apiEndpoint.includes("?") ? "&" : "?";
-      const fetchUrl = `${apiEndpoint}${separator}botId=${encodeURIComponent(botId)}&tenantId=${encodeURIComponent(tenantId)}`;
-      const res = await fetch(fetchUrl);
-      if (res.ok) {
-        const data = await res.json();
-        applyLoadedConfig(data);
+    if (window.tenantId || window.teanantId) {
+      config.tenantId = window.tenantId || window.teanantId;
+      config.teanantId = config.tenantId;
+    }
+
+    // Call the config API endpoint
+    if (apiEndpoint) {
+      try {
+        const separator = apiEndpoint.includes("?") ? "&" : "?";
+        const fetchUrl = `${apiEndpoint}${separator}botId=${encodeURIComponent(botId)}&tenantId=${encodeURIComponent(config.tenantId)}`;
+        const response = await fetch(fetchUrl);
+        if (response.ok) {
+          const apiConfig = await response.json();
+          applyLoadedConfig(apiConfig);
+        } else {
+          console.warn(`[ISO Chatbot] Config API responded with status ${response.status}. Using defaults.`);
+        }
+      } catch (err) {
+        console.warn("[ISO Chatbot] Config API not reachable, using fallback defaults.", err);
       }
-    } catch (e) {
-      console.warn("[ISO Chatbot] Configuration fetch fallback to defaults:", e.message);
     }
 
     normalizeConfigs(config);
   }
 
   // --------------------------------------------------------
-  // 4. STYLE INJECTION (Modern CSS with Streaming & a11y)
+  // 4. STYLE INJECTION (Unique "iso-" CSS namespace)
   // --------------------------------------------------------
   function injectStyles() {
     const styleId = "iso-theme-styles";
@@ -354,159 +381,372 @@
     if (!styleEl) {
       styleEl = document.createElement("style");
       styleEl.id = styleId;
-      const target = document.head || document.getElementsByTagName("head")[0] || document.documentElement || document.body;
-      if (target) {
-        target.appendChild(styleEl);
-      }
+      document.head.appendChild(styleEl);
     }
-    if (!styleEl) return;
 
     const ui = config.botUIConfigs || {};
+
     const primaryColor = ui.botThemeColor || "#00306D";
     const bgColor = ui.bgColor || "#ffffff";
-    const botMsgBg = ui.botResponseBackgroundColor || "#F1F5F9";
-    const userMsgBg = ui.userQueryBackgroundColor || primaryColor;
-    const botMsgColor = ui.botResponseFontColor || "#0F172A";
-    const userMsgColor = ui.userQueryFontColor || "#FFFFFF";
+    const botMsgBg = ui.botResponseBackgroundColor || "#EFEFEF";
+    const userMsgBg = ui.userQueryBackgroundColor || "#EFEFEF";
+
+    const botMsgColor = ui.botResponseFontColor && ui.botResponseFontColor.trim() !== ""
+      ? ui.botResponseFontColor
+      : getContrastColor(botMsgBg);
+
+    const userMsgColor = ui.userQueryFontColor && ui.userQueryFontColor.trim() !== ""
+      ? ui.userQueryFontColor
+      : getContrastColor(userMsgBg);
 
     const posBottom = normalizeUnit(ui.chatPositionBottom, "20px");
+    const posTop = ui.chatPositionTop && ui.chatPositionTop !== "auto" ? normalizeUnit(ui.chatPositionTop) : "auto";
     const isAlignLeft = ui.chatAlignmentLeft === true || (ui.chatPositionLeft && ui.chatPositionLeft !== "auto");
     const posLeft = isAlignLeft ? normalizeUnit(ui.chatPositionLeft || "30px") : "auto";
     const posRight = !isAlignLeft ? normalizeUnit(ui.chatPositionRight || "30px") : "auto";
 
+    const iconWidth = normalizeUnit(ui.chatIconWidth, "90px");
+    const iconHeight = normalizeUnit(ui.chatIconHeight, "90px");
+    const mobileIconWidth = normalizeUnit(ui.chatMobileIconWidth, "70px");
+    const mobileIconHeight = normalizeUnit(ui.chatMobileIconHeight, "70px");
+    const headerTextColor = ui.botHeaderTextColor || ui.headerTextColor || ui.headerFontColor || "#FFFFFF";
+    const headerIconColor = ui.botHeaderIconColor || ui.headerIconColor || "#FFFFFF";
+    const headerStatusColor = ui.botHeaderStatusColor || ui.headerStatusColor || "rgba(255, 255, 255, 0.75)";
+    const avatarIconColor = ui.botAvatarIconColor || ui.avatarIconColor || "#FFFFFF";
+    const avatarBg = ui.botAvatarBg || ui.botThemeColor || "#0A2240";
+    const launcherIconColor = ui.launcherIconColor || ui.chatIconColor || "#FFFFFF";
+
+    const submitBtnDisplay = ui.botChatSubmitButton === true ? "flex" : (ui.botChatSubmitButton === false ? "none" : "flex");
+
     styleEl.innerHTML = `
       :root {
         --iso-primary: ${primaryColor};
-        --iso-primary-dark: #00224f;
         --iso-bg: ${bgColor};
         --iso-bot-msg-bg: ${botMsgBg};
         --iso-bot-msg-color: ${botMsgColor};
         --iso-user-msg-bg: ${userMsgBg};
         --iso-user-msg-color: ${userMsgColor};
-        --iso-header-text-color: ${ui.botHeaderTextColor || "#FFFFFF"};
-        --iso-header-status-color: ${ui.botHeaderStatusColor || "rgba(255, 255, 255, 0.85)"};
+        --iso-header-text-color: ${headerTextColor};
+        --iso-header-icon-color: ${headerIconColor};
+        --iso-header-status-color: ${headerStatusColor};
+        --iso-avatar-icon-color: ${avatarIconColor};
+        --iso-avatar-bg: ${avatarBg};
+        --iso-launcher-icon-color: ${launcherIconColor};
+        --iso-font: "Inter", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+        --iso-pos-bottom: ${posBottom};
+        --iso-pos-top: ${posTop};
+        --iso-pos-left: ${posLeft};
+        --iso-pos-right: ${posRight};
+        --iso-icon-w: ${iconWidth};
+        --iso-icon-h: ${iconHeight};
+        --iso-mobile-icon-w: ${mobileIconWidth};
+        --iso-mobile-icon-h: ${mobileIconHeight};
+        --iso-accent: #C5A059;
+      }
+
+      .iso-scope * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: var(--iso-font);
+        -webkit-font-smoothing: antialiased;
       }
 
       .iso-container {
-        position: fixed;
-        bottom: ${posBottom};
-        right: ${posRight};
-        left: ${posLeft};
+        position: ${ui.chatPosition || "fixed"};
+        bottom: var(--iso-pos-bottom);
+        top: var(--iso-pos-top);
+        left: var(--iso-pos-left);
+        right: var(--iso-pos-right);
         z-index: 999999;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: ${isAlignLeft ? "flex-start" : "flex-end"};
       }
 
-      /* Launcher Toggle Button */
-      .iso-toggle {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background-color: var(--iso-primary);
-        color: #ffffff;
+      /* Help Notification Callout Bubble (Positioned directly above launcher button) */
+      .iso-help-callout {
+        position: absolute;
+        bottom: calc(var(--iso-icon-h, 60px) + 14px);
+        ${isAlignLeft ? "left: 0;" : "right: 0;"}
+        width: 285px;
+        max-width: calc(100vw - 40px);
+        background: #ffffff;
+        color: #1E293B;
+        border-radius: 14px;
+        padding: 12px 34px 12px 14px;
+        box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        font-size: 12.5px;
+        line-height: 1.45;
+        cursor: pointer;
+        z-index: 9999999;
+        display: none;
+        animation: iso-callout-anim 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .iso-help-callout:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 14px 28px -4px rgba(0, 0, 0, 0.2), 0 6px 12px rgba(0, 0, 0, 0.08);
+      }
+
+      /* Callout arrow pointing down towards launcher icon */
+      .iso-help-callout::after {
+        content: '';
+        position: absolute;
+        bottom: -6px;
+        ${isAlignLeft ? "left: 24px;" : "right: 24px;"}
+        width: 12px;
+        height: 12px;
+        background: #ffffff;
+        transform: rotate(45deg);
+        border-right: 1px solid rgba(0, 0, 0, 0.08);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+      }
+
+      .iso-callout-close {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: transparent;
         border: none;
-        outline: none;
+        width: 22px;
+        height: 22px;
+        font-size: 16px;
+        line-height: 1;
+        color: #94A3B8;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
-        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
-        position: relative;
+        border-radius: 50%;
+        transition: background-color 0.2s, color 0.2s;
       }
-      .iso-toggle:hover {
-        transform: scale(1.06);
-        box-shadow: 0 14px 28px -4px rgba(0, 0, 0, 0.3);
-      }
-      .iso-toggle svg { width: 28px; height: 28px; }
-      .iso-toggle .iso-close-icon { display: none; }
-      .iso-toggle.iso-active .iso-chat-icon,
-      .iso-toggle.iso-active .iso-start-img { display: none; }
-      .iso-toggle.iso-active .iso-close-icon { display: block; }
 
-      /* Help callout popup */
-      .iso-help-callout {
-        position: absolute;
-        bottom: 74px;
-        right: 0;
-        width: 270px;
-        background: #ffffff;
-        border: 1px solid #E2E8F0;
-        border-radius: 12px;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
-        padding: 12px 14px;
-        font-size: 13px;
+      .iso-callout-close:hover {
+        background: #F1F5F9;
         color: #1E293B;
-        z-index: 1000000;
-        animation: isoFadeInUp 0.3s ease;
-      }
-      .iso-callout-close {
-        position: absolute;
-        top: 6px;
-        right: 8px;
-        background: transparent;
-        border: none;
-        font-size: 16px;
-        color: #94A3B8;
-        cursor: pointer;
       }
 
-      /* Main Chat Window */
-      .iso-window {
-        display: none;
+      @keyframes iso-callout-anim {
+        from { opacity: 0; transform: translateY(8px) scale(0.96); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+
+      /* Customizable Launcher Toggle */
+      .iso-toggle {
+        width: var(--iso-icon-w);
+        height: var(--iso-icon-h);
+        border-radius: 50%;
+        background-color: var(--iso-primary);
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 26px rgba(0, 0, 0, 0.2);
+        transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s ease, box-shadow 0.2s ease;
+        position: relative;
+        overflow: hidden;
+        padding: 0;
+      }
+
+      .iso-toggle:hover {
+        transform: scale(1.05);
+        box-shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
+      }
+
+      .iso-toggle:active {
+        transform: scale(0.96);
+      }
+
+      /* Compact launcher button when chat window is active & open */
+      .iso-active .iso-toggle {
+        width: 48px;
+        height: 48px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      }
+
+      .iso-start-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        transition: transform 0.3s ease, opacity 0.25s ease;
+        display: block;
+      }
+
+      .iso-chat-icon {
+        width: 50%;
+        height: 50%;
+        color: var(--iso-launcher-icon-color);
+        stroke: var(--iso-launcher-icon-color);
+        transition: transform 0.3s ease, opacity 0.25s ease;
+      }
+
+      .iso-close-icon {
         position: absolute;
-        bottom: 74px;
-        right: 0;
-        width: 380px;
-        max-width: calc(100vw - 32px);
-        height: 600px;
-        max-height: calc(100vh - 110px);
+        width: 44%;
+        height: 44%;
+        color: var(--iso-launcher-icon-color);
+        stroke: var(--iso-launcher-icon-color);
+        opacity: 0;
+        transform: rotate(-90deg) scale(0.5);
+        transition: transform 0.3s ease, opacity 0.25s ease;
+      }
+
+      .iso-active .iso-toggle .iso-start-img,
+      .iso-active .iso-toggle .iso-chat-icon {
+        opacity: 0;
+        transform: rotate(90deg) scale(0.4);
+      }
+
+      .iso-active .iso-toggle .iso-close-icon {
+        opacity: 1;
+        transform: rotate(0) scale(1);
+      }
+
+      /* Chat Window: Expanded height with optimized vertical spacing */
+      .iso-window {
+        width: 420px;
+        height: 630px;
+        max-height: calc(100vh - 84px);
         background-color: var(--iso-bg);
         border-radius: 16px;
-        box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.25), 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-        border: 1px solid #E2E8F0;
+        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.05);
+        margin-bottom: 10px;
+        display: flex;
         flex-direction: column;
         overflow: hidden;
-        animation: isoWindowOpen 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-      .iso-window.iso-open { display: flex; }
-      .iso-window.iso-minimized {
-        height: 56px;
-        overflow: hidden;
+        opacity: 0;
+        transform: translateY(16px) scale(0.97);
+        pointer-events: none;
+        transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        transform-origin: ${isAlignLeft ? "bottom left" : "bottom right"};
       }
 
-      /* Window Header */
+      .iso-active .iso-window {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+      }
+
+      /* Header */
       .iso-header {
         background-color: var(--iso-primary);
-        padding: 12px 16px;
+        color: #ffffff;
+        padding: 14px 18px;
         display: flex;
         align-items: center;
         justify-content: space-between;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      .iso-header-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .iso-avatar-wrapper {
+        position: relative;
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+      }
+
+      .iso-header-logo {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.16);
         color: #FFFFFF;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
       }
-      .iso-header-info { display: flex; align-items: center; gap: 10px; }
-      .iso-avatar-wrapper { position: relative; width: 34px; height: 34px; }
-      .iso-header-logo img, .iso-header-logo svg {
-        width: 34px; height: 34px; border-radius: 50%; object-fit: contain; background: rgba(255,255,255,0.15);
+
+      .iso-header-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
       }
+
+      .iso-header-logo svg {
+        width: 22px;
+        height: 22px;
+        stroke: var(--iso-header-icon-color);
+      }
+
       .iso-status-indicator {
-        position: absolute; bottom: 0; right: 0; width: 9px; height: 9px;
-        background-color: #10B981; border: 2px solid var(--iso-primary); border-radius: 50%;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: ${config.botActive !== false ? "#10B981" : "#94A3B8"};
+        border: 2px solid var(--iso-primary);
+        position: absolute;
+        bottom: 0;
+        right: 0;
       }
-      .iso-header-text { display: flex; flex-direction: column; }
-      .iso-bot-name { font-weight: 700; font-size: 14px; color: var(--iso-header-text-color); }
-      .iso-bot-status { font-size: 11px; color: var(--iso-header-status-color); }
 
-      .iso-header-actions { display: flex; align-items: center; gap: 4px; }
+      .iso-header-text {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .iso-bot-name {
+        font-weight: 600;
+        font-size: 15px;
+        color: var(--iso-header-text-color);
+        letter-spacing: -0.2px;
+      }
+
+      .iso-bot-status {
+        font-size: 11px;
+        color: var(--iso-header-status-color);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 1px;
+      }
+
+      .iso-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
       .iso-header-btn {
-        background: transparent; border: none; color: #FFFFFF; width: 28px; height: 28px;
-        border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-        opacity: 0.85; transition: background 0.15s, opacity 0.15s;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--iso-header-icon-color);
+        transition: background-color 0.2s, color 0.2s;
+        text-decoration: none;
       }
-      .iso-header-btn:hover { background: rgba(255, 255, 255, 0.2); opacity: 1; }
-      .iso-header-btn svg { width: 16px; height: 16px; }
 
-      /* Messages Body */
+      .iso-header-btn:hover {
+        background-color: rgba(255, 255, 255, 0.15);
+        color: var(--iso-header-text-color);
+      }
+
+      .iso-header-btn svg {
+        width: 18px;
+        height: 18px;
+        stroke: var(--iso-header-icon-color);
+      }
+
+      /* Body */
       .iso-body {
         flex: 1;
         padding: 16px;
@@ -514,243 +754,751 @@
         display: flex;
         flex-direction: column;
         gap: 12px;
-        background: #F8FAFC;
-        scroll-behavior: smooth;
-        position: relative;
+        background-color: var(--iso-bg);
       }
 
-      /* Floating Scroll Bottom Button */
-      .iso-scroll-bottom-btn {
-        position: absolute;
-        bottom: 12px;
-        right: 14px;
-        background: #FFFFFF;
-        border: 1px solid #CBD5E1;
-        border-radius: 50%;
-        width: 30px;
-        height: 30px;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        cursor: pointer;
-        z-index: 10;
-        color: var(--iso-primary);
-        transition: transform 0.15s;
+      /* Messages */
+      .iso-message {
+        display: flex;
+        gap: 8px;
+        max-width: 86%;
+        animation: iso-msg-appear 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
-      .iso-scroll-bottom-btn:hover { transform: scale(1.1); }
-      .iso-scroll-bottom-btn svg { width: 16px; height: 16px; }
 
-      /* Message Items */
-      .iso-message { display: flex; gap: 8px; max-width: 88%; }
-      .iso-message-bot { align-self: flex-start; }
-      .iso-message-user { align-self: flex-end; flex-direction: row-reverse; }
+      @keyframes iso-msg-appear {
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .iso-message-bot {
+        align-self: flex-start;
+      }
+
+      .iso-message-user {
+        align-self: flex-end;
+        flex-direction: row-reverse;
+      }
 
       .iso-msg-avatar {
-        width: 26px; height: 26px; border-radius: 50%; shrink-0;
-        background: var(--iso-primary); color: #FFF; display: flex; align-items: center; justify-content: center;
-        margin-top: 2px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        align-self: flex-end;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: var(--iso-avatar-bg);
+        color: var(--iso-avatar-icon-color);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
       }
-      .iso-msg-avatar img, .iso-msg-avatar svg { width: 100%; height: 100%; border-radius: 50%; object-fit: contain; }
 
-      .iso-bubble-wrapper { display: flex; flex-direction: column; gap: 4px; }
-      .iso-msg-bubble {
-        padding: 10px 14px;
-        border-radius: 14px;
-        font-size: 13px;
-        line-height: 1.5;
-        word-break: break-word;
+      .iso-msg-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
       }
+
+      .iso-msg-avatar svg {
+        width: 16px;
+        height: 16px;
+        stroke: var(--iso-avatar-icon-color);
+      }
+
+      .iso-bubble-wrapper {
+        display: flex;
+        flex-direction: column;
+        max-width: 100%;
+      }
+
+      
+      /* Markdown Elements inside Bot Message */
+      .iso-msg-bubble .iso-table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        margin: 10px 0;
+        border-radius: 6px;
+        border: 1px solid #CBD5E1;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      }
+      .iso-msg-bubble .iso-md-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+        text-align: left;
+        background: #FFFFFF;
+      }
+      .iso-msg-bubble .iso-md-table th {
+        background-color: #0A2240;
+        color: #FFFFFF;
+        font-weight: 600;
+        padding: 8px 11px;
+        border-bottom: 2px solid #C5A059;
+        white-space: nowrap;
+      }
+      .iso-msg-bubble .iso-md-table td {
+        padding: 8px 11px;
+        border-bottom: 1px solid #E2E8F0;
+        color: #1E293B;
+        vertical-align: top;
+        line-height: 1.45;
+      }
+      .iso-msg-bubble .iso-md-table tr:nth-child(even) td {
+        background-color: #F8FAFC;
+      }
+      .iso-msg-bubble .iso-md-table tr:hover td {
+        background-color: #F1F5F9;
+      }
+      .iso-msg-bubble .iso-md-h2 {
+        font-size: 15px;
+        font-weight: 700;
+        color: #0A2240;
+        margin: 12px 0 6px 0;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #E2E8F0;
+      }
+      .iso-msg-bubble .iso-md-h3 {
+        font-size: 14px;
+        font-weight: 600;
+        color: #0A2240;
+        margin: 10px 0 4px 0;
+      }
+      .iso-msg-bubble .iso-md-h4 {
+        font-size: 13px;
+        font-weight: 600;
+        color: #334155;
+        margin: 8px 0 3px 0;
+      }
+      .iso-msg-bubble .iso-md-ul, .iso-msg-bubble .iso-md-ol {
+        margin: 6px 0 6px 18px;
+        padding-left: 0;
+      }
+      .iso-msg-bubble .iso-md-ul li, .iso-msg-bubble .iso-md-ol li {
+        margin-bottom: 4px;
+        line-height: 1.45;
+      }
+      .iso-msg-bubble .iso-md-hr {
+        border: none;
+        border-top: 1px solid #E2E8F0;
+        margin: 12px 0;
+      }
+      .iso-msg-bubble .iso-md-link {
+        color: #C5A059;
+        text-decoration: underline;
+        font-weight: 500;
+      }
+      .iso-msg-bubble .iso-md-link:hover {
+        color: #0A2240;
+      }
+      .iso-msg-bubble .iso-md-pre {
+        background: #0F172A;
+        color: #F8FAFC;
+        padding: 9px 12px;
+        border-radius: 6px;
+        overflow-x: auto;
+        font-size: 11.5px;
+        margin: 8px 0;
+      }
+      .iso-msg-bubble .iso-md-inline-code {
+        background: rgba(10, 34, 64, 0.07);
+        color: #0A2240;
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-family: monospace;
+      }
+
+      /* Modern Rounded Chat Bubble Styles */
+      .iso-msg-bubble {
+        padding: 12px 16px;
+        font-size: 13.5px;
+        line-height: 1.55;
+        position: relative;
+        word-break: break-word;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+      }
+
+      /* Bot Message Bubble: Rounded pill with subtle bottom-left curve */
       .iso-message-bot .iso-msg-bubble {
-        background-color: var(--iso-bot-msg-bg);
-        color: var(--iso-bot-msg-color);
-        border-top-left-radius: 3px;
+        background-color: var(--iso-bot-msg-bg, #FFFFFF);
+        color: var(--iso-bot-msg-color, #1E293B);
+        border-radius: 18px 18px 18px 4px;
         border: 1px solid #E2E8F0;
       }
+
+      /* User Message Bubble: Rounded pill with subtle bottom-right curve */
       .iso-message-user .iso-msg-bubble {
-        background-color: var(--iso-user-msg-bg);
-        color: var(--iso-user-msg-color);
-        border-top-right-radius: 3px;
+        background-color: var(--iso-user-msg-bg, #0A2240);
+        color: var(--iso-user-msg-color, #FFFFFF);
+        border-radius: 18px 18px 4px 18px;
+        border: 1px solid transparent;
       }
 
-      .iso-msg-time { font-size: 10px; color: #94A3B8; margin-top: 2px; padding: 0 2px; }
-      .iso-message-user .iso-msg-time { text-align: right; }
-
-      /* Streaming Blinking Cursor */
-      .iso-stream-cursor {
-        display: inline-block;
-        width: 6px;
-        height: 14px;
-        background: var(--iso-primary);
-        vertical-align: middle;
-        margin-left: 2px;
-        animation: isoBlink 0.8s infinite;
+      /* User Avatar Icon */
+      .iso-msg-avatar.iso-user-avatar {
+        background: #0A2240;
+        color: #FFFFFF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+      }
+      .iso-msg-avatar.iso-user-avatar svg {
+        width: 15px;
+        height: 15px;
+        stroke: #FFFFFF;
       }
 
-      /* Markdown Formats & Tables */
-      .iso-md-table-wrap { overflow-x: auto; margin: 8px 0; border: 1px solid #CBD5E1; border-radius: 6px; }
-      .iso-md-table { width: 100%; border-collapse: collapse; font-size: 11px; background: #FFF; }
-      .iso-md-table th { background: #F1F5F9; font-weight: 700; padding: 6px 8px; border: 1px solid #CBD5E1; text-align: left; }
-      .iso-md-table td { padding: 6px 8px; border: 1px solid #E2E8F0; }
-      .iso-md-link { color: #0284C7; text-decoration: underline; }
-      .iso-md-inline-code { background: #E2E8F0; padding: 2px 4px; border-radius: 4px; font-family: monospace; font-size: 11px; }
-
-      /* Code Blocks */
-      .iso-code-block { margin: 8px 0; background: #0F172A; border-radius: 8px; overflow: hidden; border: 1px solid #334155; }
-      .iso-code-header { display: flex; justify-content: space-between; align-items: center; padding: 4px 10px; background: #1E293B; color: #94A3B8; font-size: 10px; font-family: monospace; }
-      .iso-copy-code-btn { background: transparent; border: none; color: #94A3B8; cursor: pointer; font-size: 10px; padding: 2px 6px; border-radius: 4px; }
-      .iso-copy-code-btn:hover { color: #FFF; background: #334155; }
-      .iso-code-block pre { margin: 0; padding: 8px 10px; overflow-x: auto; color: #F8FAFC; font-size: 11px; font-family: monospace; }
-
-      /* Source Citations */
-      .iso-sources-list { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
-      .iso-source-chip {
-        font-size: 10px; font-weight: 600; color: #0284C7; background: #E0F2FE;
-        border: 1px solid #BAE6FD; border-radius: 12px; padding: 2px 8px; display: inline-flex; align-items: center; gap: 3px;
+      /* Markdown Elements inside Bot Message */
+      .iso-msg-bubble .iso-table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        margin: 10px 0;
+        border-radius: 6px;
+        border: 1px solid #CBD5E1;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      }
+      .iso-msg-bubble .iso-md-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+        text-align: left;
+        background: #FFFFFF;
+      }
+      .iso-msg-bubble .iso-md-table th {
+        background-color: #0A2240;
+        color: #FFFFFF;
+        font-weight: 600;
+        padding: 8px 11px;
+        border-bottom: 2px solid #C5A059;
+        white-space: nowrap;
+      }
+      .iso-msg-bubble .iso-md-table td {
+        padding: 8px 11px;
+        border-bottom: 1px solid #E2E8F0;
+        color: #1E293B;
+        vertical-align: top;
+        line-height: 1.45;
+      }
+      .iso-msg-bubble .iso-md-table tr:nth-child(even) td {
+        background-color: #F8FAFC;
+      }
+      .iso-msg-bubble .iso-md-table tr:hover td {
+        background-color: #F1F5F9;
+      }
+      .iso-msg-bubble .iso-md-h2 {
+        font-size: 15px;
+        font-weight: 700;
+        color: #0A2240;
+        margin: 12px 0 6px 0;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #E2E8F0;
+      }
+      .iso-msg-bubble .iso-md-h3 {
+        font-size: 14px;
+        font-weight: 600;
+        color: #0A2240;
+        margin: 10px 0 4px 0;
+      }
+      .iso-msg-bubble .iso-md-h4 {
+        font-size: 13px;
+        font-weight: 600;
+        color: #334155;
+        margin: 8px 0 3px 0;
+      }
+      .iso-msg-bubble .iso-md-ul, .iso-msg-bubble .iso-md-ol {
+        margin: 6px 0 6px 18px;
+        padding-left: 0;
+      }
+      .iso-msg-bubble .iso-md-ul li, .iso-msg-bubble .iso-md-ol li {
+        margin-bottom: 4px;
+        line-height: 1.45;
+      }
+      .iso-msg-bubble .iso-md-hr {
+        border: none;
+        border-top: 1px solid #E2E8F0;
+        margin: 12px 0;
+      }
+      .iso-msg-bubble .iso-md-link {
+        color: #C5A059;
+        text-decoration: underline;
+        font-weight: 500;
+      }
+      .iso-msg-bubble .iso-md-link:hover {
+        color: #0A2240;
+      }
+      .iso-msg-bubble .iso-md-pre {
+        background: #0F172A;
+        color: #F8FAFC;
+        padding: 9px 12px;
+        border-radius: 6px;
+        overflow-x: auto;
+        font-size: 11.5px;
+        margin: 8px 0;
+      }
+      .iso-msg-bubble .iso-md-inline-code {
+        background: rgba(10, 34, 64, 0.07);
+        color: #0A2240;
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-family: monospace;
       }
 
-      /* Bot Message Feedback & Action Row */
-      .iso-feedback-row { display: flex; align-items: center; gap: 4px; margin-top: 3px; }
+      .iso-msg-time {
+        font-size: 10px;
+        color: #94A3B8;
+        margin-top: 4px;
+        align-self: flex-start;
+        padding-left: 2px;
+      }
+
+      .iso-message-user .iso-msg-time {
+        align-self: flex-end;
+        padding-right: 2px;
+      }
+
+      /* In-Message Actions & Feedback Row */
+      .iso-feedback-row {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 6px;
+        padding-left: 2px;
+      }
+
       .iso-feedback-btn {
-        background: transparent; border: none; color: #94A3B8; cursor: pointer; padding: 3px; border-radius: 4px;
-        display: flex; align-items: center; justify-content: center; transition: color 0.15s, background 0.15s;
-      }
-      .iso-feedback-btn:hover { color: #1E293B; background: #E2E8F0; }
-      .iso-feedback-btn.iso-voted-like { color: #10B981; }
-      .iso-feedback-btn.iso-voted-dislike { color: #EF4444; }
-      .iso-feedback-btn.iso-speaking { color: var(--iso-primary); animation: isoPulse 1.2s infinite; }
-      .iso-feedback-btn svg { width: 14px; height: 14px; }
-      .iso-feedback-note { font-size: 10px; color: #64748B; margin-left: 4px; }
-
-      /* Quick Replies Area */
-      .iso-quick-replies {
-        padding: 6px 12px; display: flex; flex-wrap: wrap; gap: 6px; background: #F8FAFC; border-top: 1px solid #E2E8F0;
-      }
-      .iso-quick-reply-btn {
-        background: #FFFFFF; border: 1px solid #CBD5E1; color: var(--iso-primary);
-        border-radius: 16px; padding: 5px 12px; font-size: 11px; font-weight: 600; cursor: pointer;
-        transition: all 0.15s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-      }
-      .iso-quick-reply-btn:hover {
-        background: var(--iso-primary); color: #FFFFFF; border-color: var(--iso-primary);
+        background: transparent;
+        border: 1px solid transparent;
+        color: #64748B;
+        cursor: pointer;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+        opacity: 0.7;
       }
 
-      /* Forms Container (Ticketing & Survey) */
+      .iso-feedback-btn:hover:not(:disabled) {
+        opacity: 1;
+        background-color: rgba(0, 0, 0, 0.05);
+        color: #0F172A;
+      }
+
+      .iso-feedback-btn svg {
+        width: 14px;
+        height: 14px;
+        stroke-width: 1.8;
+      }
+
+      .iso-feedback-icon {
+        width: 14px;
+        height: 14px;
+        object-fit: contain;
+      }
+
+      .iso-feedback-btn.iso-voted-like {
+        opacity: 1;
+        background-color: #ECFDF5;
+        border-color: #A7F3D0;
+        color: #059669;
+      }
+
+      .iso-feedback-btn.iso-voted-dislike {
+        opacity: 1;
+        background-color: #FFF1F2;
+        border-color: #FECDD3;
+        color: #E11D48;
+      }
+
+      .iso-feedback-btn:disabled {
+        cursor: default;
+      }
+
+      .iso-feedback-note {
+        font-size: 11px;
+        color: #64748B;
+        margin-left: 4px;
+        animation: iso-fade-in-up 0.2s ease;
+      }
+
+      /* Custom Forms */
       .iso-form-container {
-        background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.04); margin-top: 6px; width: 100%; box-sizing: border-box;
+        background: #ffffff;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        padding: 14px;
+        margin-top: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
       }
-      .iso-form-title { font-weight: 700; font-size: 12px; color: #1E293B; margin-bottom: 8px; border-bottom: 1px solid #F1F5F9; pb: 4px; }
-      .iso-form-group { margin-bottom: 8px; }
-      .iso-form-label { display: block; font-size: 10px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 3px; }
-      .iso-form-input, .iso-form-textarea, .iso-form-select {
-        width: 100%; box-sizing: border-box; border: 1px solid #CBD5E1; border-radius: 6px; padding: 6px 8px;
-        font-size: 12px; color: #0F172A; outline: none; background: #F8FAFC;
+
+      .iso-form-title {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #1E293B;
+        border-bottom: 1px solid #F1F5F9;
+        padding-bottom: 8px;
       }
-      .iso-form-input:focus, .iso-form-textarea:focus, .iso-form-select:focus {
-        border-color: var(--iso-primary); background: #FFF;
+
+      .iso-form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
       }
-      .iso-form-actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+
+      .iso-form-label {
+        font-size: 11.5px;
+        font-weight: 500;
+        color: #475569;
+      }
+
+      .iso-form-input,
+      .iso-form-textarea {
+        width: 100%;
+        border: 1px solid #CBD5E1;
+        border-radius: 6px;
+        padding: 7px 10px;
+        font-size: 12.5px;
+        color: #1E293B;
+        background-color: #F8FAFC;
+        transition: border-color 0.2s;
+        outline: none;
+      }
+
+      .iso-form-input:focus,
+      .iso-form-textarea:focus {
+        border-color: var(--iso-primary);
+        background-color: #ffffff;
+      }
+
+      /* 5-Star Interactive Rating */
+      .iso-rating-group {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        padding: 4px 0;
+      }
+
+      .iso-star-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-size: 24px;
+        line-height: 1;
+        color: #CBD5E1;
+        transition: transform 0.15s, color 0.15s;
+        padding: 0 2px;
+      }
+
+      .iso-star-btn:hover,
+      .iso-star-btn.iso-star-active {
+        color: #F59E0B;
+        transform: scale(1.1);
+      }
+
+      .iso-form-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 6px;
+      }
+
       .iso-form-submit {
-        background: var(--iso-primary); color: #FFF; border: none; border-radius: 6px; padding: 6px 14px;
-        font-size: 11px; font-weight: 700; cursor: pointer;
-      }
-      .iso-form-cancel, .iso-form-download {
-        background: #F1F5F9; color: #475569; border: 1px solid #CBD5E1; border-radius: 6px; padding: 6px 10px;
-        font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;
+        background-color: var(--iso-primary);
+        color: #ffffff;
+        border: none;
+        padding: 9px 14px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: opacity 0.2s;
       }
 
-      /* Star Ratings */
-      .iso-rating-group { display: flex; gap: 4px; }
-      .iso-star-btn { background: transparent; border: none; font-size: 20px; color: #CBD5E1; cursor: pointer; padding: 0; }
-      .iso-star-btn.iso-star-active { color: #F59E0B; }
+      .iso-form-submit:hover {
+        opacity: 0.92;
+      }
 
-      /* Input Area */
+      .iso-form-download {
+        background-color: #F1F5F9;
+        color: #334155;
+        border: 1px solid #CBD5E1;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      }
+
+      .iso-form-download:hover {
+        background-color: #E2E8F0;
+      }
+
+      .iso-form-cancel {
+        background: transparent;
+        border: none;
+        color: #94A3B8;
+        font-size: 12px;
+        cursor: pointer;
+        text-align: center;
+        padding: 4px;
+      }
+
+      .iso-form-cancel:hover {
+        color: #475569;
+      }
+
+      /* Quick Replies */
+      .iso-quick-replies {
+        display: flex;
+        gap: 6px;
+        padding: 0 16px 12px 16px;
+        overflow-x: auto;
+        background-color: #F8FAFC;
+        scrollbar-width: none;
+      }
+
+      .iso-quick-replies::-webkit-scrollbar {
+        display: none;
+      }
+
+      .iso-quick-reply-btn {
+        background-color: #ffffff;
+        border: 1px solid #E2E8F0;
+        color: #475569;
+        padding: 6px 12px;
+        border-radius: 16px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        font-weight: 500;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+      }
+
+      .iso-quick-reply-btn:hover {
+        background-color: var(--iso-primary);
+        color: #ffffff;
+        border-color: var(--iso-primary);
+      }
+
+      /* Input */
       .iso-input-area {
-        padding: 10px 14px; background: #FFFFFF; border-top: 1px solid #E2E8F0; display: flex; align-items: center; gap: 8px;
+        padding: 12px 16px;
+        border-top: 1px solid #E2E8F0;
+        background-color: #ffffff;
+        display: flex;
+        gap: 8px;
+        align-items: center;
       }
+
       .iso-input-wrapper {
-        flex: 1; display: flex; align-items: center; background: #F1F5F9; border-radius: 20px; border: 1px solid #E2E8F0; padding: 2px 8px 2px 14px;
+        flex: 1;
+        position: relative;
+        background-color: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-radius: 22px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        padding: 0 14px;
       }
+
+      .iso-input-wrapper:focus-within {
+        border-color: var(--iso-primary);
+        background-color: #ffffff;
+      }
+
       .iso-input-wrapper input {
-        flex: 1; background: transparent; border: none; outline: none; font-size: 13px; color: #0F172A; padding: 6px 0;
+        width: 100%;
+        border: none;
+        background: transparent;
+        padding: 9px 0;
+        font-size: 13.5px;
+        color: #1E293B;
+        outline: none;
       }
-      .iso-mic-btn {
-        background: transparent; border: none; color: #94A3B8; cursor: pointer; padding: 4px; display: flex; align-items: center;
+
+      .iso-input-wrapper input::placeholder {
+        color: #94A3B8;
       }
-      .iso-mic-btn.iso-recording { color: #EF4444; animation: isoPulse 1s infinite; }
+
       .iso-send-btn {
-        width: 34px; height: 34px; border-radius: 50%; background: var(--iso-primary); color: #FFFFFF;
-        border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; shrink-0;
-        transition: opacity 0.15s, transform 0.15s;
+        background-color: var(--iso-primary);
+        color: #ffffff;
+        border: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: ${submitBtnDisplay};
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: opacity 0.2s, transform 0.1s;
       }
-      .iso-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-      .iso-send-btn:not(:disabled):hover { transform: scale(1.05); }
-      .iso-send-btn svg { width: 16px; height: 16px; }
+
+      .iso-send-btn:hover:not(:disabled) {
+        opacity: 0.9;
+        transform: scale(1.05);
+      }
+
+      .iso-send-btn:disabled {
+        background-color: #F1F5F9;
+        color: #94A3B8;
+        cursor: not-allowed;
+      }
+
+      .iso-send-btn svg {
+        width: 16px;
+        height: 16px;
+      }
 
       /* Typing Indicator */
-      .iso-typing-bubble { display: flex; align-items: center; gap: 4px; padding: 10px 14px; }
-      .iso-dot { width: 6px; height: 6px; background: #94A3B8; border-radius: 50%; animation: isoDotBounce 1.4s infinite ease-in-out both; }
-      .iso-dot:nth-child(1) { animation-delay: -0.32s; }
-      .iso-dot:nth-child(2) { animation-delay: -0.16s; }
-
-      /* Branding Footer */
-      .iso-branding {
-        text-align: center; padding: 4px; font-size: 10px; color: #94A3B8; background: #FFFFFF; border-top: 1px solid #F8FAFC;
+      .iso-typing-indicator {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 10px 14px;
+        background-color: var(--iso-bot-msg-bg);
+        border-radius: 14px;
+        border-bottom-left-radius: 3px;
+        width: fit-content;
+        align-self: flex-start;
       }
-      .iso-branding span { font-weight: 700; color: #64748B; }
 
-      /* Animations */
-      @keyframes isoFadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-      @keyframes isoWindowOpen { from { opacity: 0; transform: scale(0.95) translateY(15px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-      @keyframes isoBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-      @keyframes isoPulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-      @keyframes isoDotBounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+      .iso-typing-dot {
+        width: 6px;
+        height: 6px;
+        background-color: #94A3B8;
+        border-radius: 50%;
+        animation: iso-typing 1.4s infinite ease-in-out both;
+      }
 
-      /* Mobile responsiveness */
+      .iso-typing-dot:nth-child(1) { animation-delay: -0.32s; }
+      .iso-typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+      @keyframes iso-typing {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1.0); }
+      }
+
+      /* Session Ended Banner */
+      .iso-session-ended {
+        background: #F8FAFC;
+        border: 1px dashed #CBD5E1;
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+        margin-top: 8px;
+      }
+
+      .iso-restart-btn {
+        background-color: var(--iso-primary);
+        color: #ffffff;
+        border: none;
+        padding: 6px 14px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        margin-top: 6px;
+      }
+
+      /* Footer Branding */
+      .iso-branding {
+        font-size: 10px;
+        color: #94A3B8;
+        text-align: center;
+        padding: 6px 12px 10px 12px;
+        background-color: #ffffff;
+      }
+
+      .iso-branding span, .iso-branding a {
+        color: var(--iso-primary);
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      /* Mobile Overrides */
       @media (max-width: 480px) {
-        .iso-window {
-          width: 100vw; height: calc(100vh - 80px); max-width: 100vw; max-height: calc(100vh - 80px);
-          bottom: 0; right: 0; left: 0; border-radius: 16px 16px 0 0;
+        .iso-container {
+          bottom: 16px !important;
+          right: 16px !important;
+          left: auto !important;
         }
-        .iso-container { bottom: 12px; right: 12px; left: auto; }
+
+        .iso-container-left {
+          left: 16px !important;
+          right: auto !important;
+        }
+
+        .iso-toggle {
+          width: var(--iso-mobile-icon-w) !important;
+          height: var(--iso-mobile-icon-h) !important;
+        }
+
+        .iso-window {
+          width: 100vw !important;
+          height: 100vh !important;
+          max-height: 100vh !important;
+          border-radius: 0 !important;
+          margin-bottom: 0 !important;
+          position: fixed;
+          top: 0;
+          left: 0;
+          border: none;
+        }
       }
     `;
   }
 
+  // --------------------------------------------------------
+  // 5. ICON RENDERING HELPERS
+  // --------------------------------------------------------
   function renderLogoHtml(logoUrl, altName) {
     if (logoUrl && typeof logoUrl === "string" && logoUrl.trim() !== "") {
-      return `<img src="${logoUrl}" alt="${altName || 'Bot'}" class="iso-logo-img" />`;
+      const clean = logoUrl.trim();
+      if (clean.startsWith("<svg") || clean.includes("xmlns")) {
+        return clean;
+      }
+      return `<img src="${clean}" alt="${altName || "Bot"}" />`;
     }
     return ISO_LOGO_SVG;
   }
 
   function renderFeedbackIcon(iconUrl, type) {
-    if (iconUrl && typeof iconUrl === "string" && iconUrl.trim() !== "") {
-      return `<img src="${iconUrl}" alt="${type}" style="width:14px;height:14px;object-fit:contain;" />`;
-    }
     if (type === "like") {
-      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>`;
+      return `
+        <svg class="iso-feedback-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+        </svg>
+      `;
     }
-    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg>`;
+    return `
+      <svg class="iso-feedback-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path>
+      </svg>
+    `;
   }
 
   // --------------------------------------------------------
-  // 5. DOM CREATION & EVENT BINDINGS
+  // 6. HTML MARKUP BUILDER & DOM INITIALIZATION
   // --------------------------------------------------------
   function createChatbotDOM() {
-    if (widgetContainer && document.body && document.body.contains(widgetContainer)) return;
-
-    const parent = document.body || document.getElementsByTagName("body")[0] || document.documentElement;
-    if (!parent) {
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", createChatbotDOM);
-      } else {
-        setTimeout(createChatbotDOM, 50);
-      }
-      return;
-    }
-
     const ui = config.botUIConfigs || {};
 
     widgetContainer = document.createElement("div");
@@ -763,20 +1511,56 @@
     const startImage = ui.botChatStartImage || config.botChatStartImage || ui.logoUrl || config.botLogo;
     const headerLogo = startImage || ISO_LOGO_SVG;
 
-    const closeIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
-    const minimizeIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
-    const helpIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
-    const sendIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`;
-    const micIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>`;
-    const downArrowIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>`;
+    const closeIcon = `
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    `;
+
+    const minimizeIcon = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+    `;
+
+    const helpIcon = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+      </svg>
+    `;
+
+    const sendIcon = `
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22 2L11 13M22 2L15 22L11 13M11 13L2 9L22 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    `;
+
+    const inputPlaceholder = ui.DefaultEmptyMessage || config.placeholderText || "Message ISO Bot...";
+
+    // Launcher icon
+    let launcherInnerHtml = "";
+    if (ui.botChatStartImage && typeof ui.botChatStartImage === "string" && ui.botChatStartImage.trim() !== "") {
+      launcherInnerHtml = `<img src="${ui.botChatStartImage}" class="iso-start-img" alt="${ui.chatIconAltText || 'Chat with Us'}" title="${ui.chatIconTitleText || 'Chat with Us'}" />`;
+    } else {
+      launcherInnerHtml = `
+        <svg class="iso-chat-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+      `;
+    }
 
     widgetContainer.innerHTML = `
+      <!-- Help Notification Popup -->
       <div class="iso-help-callout" id="iso-help-callout" style="display: none;" role="alert">
-        <button class="iso-callout-close" aria-label="Dismiss">&times;</button>
+        <button class="iso-callout-close" aria-label="Dismiss notification">&times;</button>
         <div class="iso-callout-content">${ui.helpNotificationRenderMsg || ""}</div>
       </div>
 
-      <div class="iso-window" aria-hidden="true" role="dialog" aria-label="${headerTitle} Chat">
+      <!-- Main Chat Window -->
+      <div class="iso-window" aria-hidden="true" role="dialog">
+        <!-- Header -->
         <div class="iso-header">
           <div class="iso-header-info">
             <div class="iso-avatar-wrapper">
@@ -787,37 +1571,41 @@
             </div>
             <div class="iso-header-text">
               <span class="iso-bot-name">${headerTitle}</span>
-              <span class="iso-bot-status">${ui.botStatusText || "Online"}</span>
+              <span class="iso-bot-status">${ui.botStatusText || (config.botActive !== false ? "Online" : "Offline")}</span>
             </div>
           </div>
           <div class="iso-header-actions">
             ${ui.showHelpButton && ui.helpButtonUrl ? `
-              <a href="${ui.helpButtonUrl}" target="_blank" rel="noopener noreferrer" class="iso-header-btn" title="Help Resources" aria-label="Help">
+              <a href="${ui.helpButtonUrl}" target="_blank" rel="noopener noreferrer" class="iso-header-btn iso-help-btn" title="Help Resources" aria-label="Help">
                 ${helpIcon}
               </a>
             ` : ""}
-            <button class="iso-header-btn iso-minimize-btn" title="Minimize" aria-label="Minimize">
+            <button class="iso-header-btn iso-minimize-btn" title="Minimize chat" aria-label="Minimize">
               ${minimizeIcon}
             </button>
-            <button class="iso-header-btn iso-close-btn" title="Close" aria-label="Close">
+            <button class="iso-header-btn iso-close-btn" title="Close conversation" aria-label="Close">
               ${closeIcon}
             </button>
           </div>
         </div>
 
-        <div class="iso-body" role="log" aria-live="polite">
-          <button type="button" class="iso-scroll-bottom-btn" title="Scroll to latest" aria-label="Scroll to bottom">
-            ${downArrowIcon}
-          </button>
-        </div>
+        <!-- Messages Body -->
+        <div class="iso-body"></div>
 
+        <!-- Quick Replies -->
         <div class="iso-quick-replies" style="display: none;"></div>
 
+        <!-- Chat Input Area -->
         <div class="iso-input-area">
           <div class="iso-input-wrapper">
-            <input type="text" placeholder="${ui.DefaultEmptyMessage || "Type your message..."}" aria-label="Type your message" ${config.botActive === false ? "disabled" : ""}>
-            <button type="button" class="iso-mic-btn" title="Voice Input" aria-label="Speak into microphone">
-              ${micIcon}
+            <input type="text" placeholder="${inputPlaceholder}" aria-label="Type your message" ${config.botActive === false ? "disabled" : ""}>
+            <button type="button" class="iso-mic-btn" title="Voice input" aria-label="Voice input" style="background:transparent;border:none;color:#94A3B8;cursor:pointer;display:flex;align-items:center;padding:4px;margin-right:2px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+                <line x1="8" y1="23" x2="16" y2="23"></line>
+              </svg>
             </button>
           </div>
           <button class="iso-send-btn" disabled aria-label="Send message">
@@ -825,310 +1613,315 @@
           </button>
         </div>
 
+        <!-- Branding / Powered By -->
         <div class="iso-branding">
           ${ui.poweredBy || 'AI powered by <span>Isomorphic</span>'}
         </div>
       </div>
 
+      <!-- Main Toggle Launcher -->
       <button class="iso-toggle" aria-label="${ui.chatIconAltText || 'Chat with Us'}" title="${ui.chatIconTitleText || 'Chat with Us'}">
-        ${CHAT_LAUNCHER_SVG}
+        ${launcherInnerHtml}
         <div class="iso-close-icon">${closeIcon}</div>
       </button>
     `;
 
-    parent.appendChild(widgetContainer);
+    document.body.appendChild(widgetContainer);
 
     chatToggle = widgetContainer.querySelector(".iso-toggle");
     chatWindow = widgetContainer.querySelector(".iso-window");
     chatBody = widgetContainer.querySelector(".iso-body");
     textInput = widgetContainer.querySelector(".iso-input-area input");
     sendButton = widgetContainer.querySelector(".iso-send-btn");
-    micButton = widgetContainer.querySelector(".iso-mic-btn");
-    scrollBottomBtn = widgetContainer.querySelector(".iso-scroll-bottom-btn");
     helpNotificationEl = widgetContainer.querySelector("#iso-help-callout");
 
     setupEventListeners();
     initHelpNotification();
     startIdleMonitoring();
 
-    if (ui.isChatOpened || isChatOpen) {
+    if (ui.isChatOpened) {
       openChat();
     }
   }
 
   // --------------------------------------------------------
-  // 6. VOICE INPUT (STT) & TEXT-TO-SPEECH (TTS)
+  // 7. EVENT HANDLERS & BINDING
   // --------------------------------------------------------
-  let isRecording = false;
+  let isRecordingVoice = false;
   let recognitionInstance = null;
-
-  function initSpeechRecognition() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      if (micButton) micButton.style.display = "none";
-      return;
-    }
-
-    try {
-      recognitionInstance = new SpeechRecognition();
-      recognitionInstance.continuous = false;
-      recognitionInstance.interimResults = true;
-      recognitionInstance.lang = "en-US";
-
-      recognitionInstance.onstart = () => {
-        isRecording = true;
-        if (micButton) micButton.classList.add("iso-recording");
-        if (textInput) textInput.placeholder = "Listening... Speak now...";
-      };
-
-      recognitionInstance.onresult = (event) => {
-        let transcript = "";
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          transcript += event.results[i][0].transcript;
-        }
-        if (textInput) {
-          textInput.value = transcript;
-          textInput.dispatchEvent(new Event("input"));
-        }
-      };
-
-      recognitionInstance.onerror = () => {
-        stopRecording();
-      };
-
-      recognitionInstance.onend = () => {
-        stopRecording();
-        if (textInput && textInput.value.trim()) {
-          triggerMessageSend();
-        }
-      };
-    } catch (e) {
-      if (micButton) micButton.style.display = "none";
-    }
-  }
-
-  function startRecording() {
-    if (!recognitionInstance) initSpeechRecognition();
-    if (recognitionInstance) {
-      try {
-        recognitionInstance.start();
-      } catch (e) {
-        stopRecording();
-      }
-    }
-  }
-
-  function stopRecording() {
-    isRecording = false;
-    if (micButton) micButton.classList.remove("iso-recording");
-    if (textInput) textInput.placeholder = (config.botUIConfigs && config.botUIConfigs.DefaultEmptyMessage) || "Type your message...";
-    if (recognitionInstance) {
-      try { recognitionInstance.stop(); } catch (e) {}
-    }
-  }
+  let currentSpeakingUtterance = null;
 
   function readAloudText(text, btnEl) {
     if (!("speechSynthesis" in window)) return;
-
-    if (window.speechSynthesis.speaking && activeSpeechBtn === btnEl) {
+    if (window.speechSynthesis.speaking) {
       window.speechSynthesis.cancel();
-      if (btnEl) btnEl.classList.remove("iso-speaking");
-      activeSpeechBtn = null;
+      if (btnEl) btnEl.style.color = "";
       return;
     }
-
-    window.speechSynthesis.cancel();
-    if (activeSpeechBtn) activeSpeechBtn.classList.remove("iso-speaking");
-
-    const clean = text.replace(/<[^>]+>/g, " ").replace(/[#*`_~]/g, "").trim();
-    const utterance = new SpeechSynthesisUtterance(clean);
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-
-    utterance.onend = () => {
-      if (btnEl) btnEl.classList.remove("iso-speaking");
-      activeSpeechBtn = null;
-    };
-    utterance.onerror = () => {
-      if (btnEl) btnEl.classList.remove("iso-speaking");
-      activeSpeechBtn = null;
-    };
-
-    if (btnEl) btnEl.classList.add("iso-speaking");
-    activeSpeechBtn = btnEl;
-    window.speechSynthesis.speak(utterance);
+    const clean = text.replace(/<[^>]*>?/gm, "").replace(/[`*#_~]/g, "");
+    currentSpeakingUtterance = new SpeechSynthesisUtterance(clean);
+    currentSpeakingUtterance.rate = 1.0;
+    if (btnEl) btnEl.style.color = "#10B981";
+    currentSpeakingUtterance.onend = () => { if (btnEl) btnEl.style.color = ""; };
+    currentSpeakingUtterance.onerror = () => { if (btnEl) btnEl.style.color = ""; };
+    window.speechSynthesis.speak(currentSpeakingUtterance);
   }
 
-  // --------------------------------------------------------
-  // 7. EVENT LISTENERS
-  // --------------------------------------------------------
   function setupEventListeners() {
-    if (chatToggle) {
-      chatToggle.addEventListener("click", handleToggleClick);
-    }
+    chatToggle.addEventListener("click", handleToggleClick);
 
-    const minBtn = widgetContainer.querySelector(".iso-minimize-btn");
-    if (minBtn) {
-      minBtn.addEventListener("click", minimizeChat);
-    }
-
-    const closeBtn = widgetContainer.querySelector(".iso-close-btn");
-    if (closeBtn) {
-      closeBtn.addEventListener("click", handleCloseButtonClick);
-    }
-
-    if (sendButton) {
-      sendButton.addEventListener("click", triggerMessageSend);
-    }
-
-    if (micButton) {
-      micButton.addEventListener("click", () => {
-        if (isRecording) stopRecording();
-        else startRecording();
-      });
-      initSpeechRecognition();
-    }
-
-    if (scrollBottomBtn) {
-      scrollBottomBtn.addEventListener("click", () => {
-        scrollToBottom(true);
-      });
-    }
-
-    if (chatBody) {
-      chatBody.addEventListener("scroll", () => {
-        const distFromBottom = chatBody.scrollHeight - chatBody.scrollTop - chatBody.clientHeight;
-        if (scrollBottomBtn) {
-          scrollBottomBtn.style.display = distFromBottom > 120 ? "flex" : "none";
+    const micBtn = widgetContainer.querySelector(".iso-mic-btn");
+    if (micBtn) {
+      micBtn.addEventListener("click", () => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+          alert("Speech recognition is not supported in this browser.");
+          return;
+        }
+        if (isRecordingVoice) {
+          if (recognitionInstance) recognitionInstance.stop();
+          isRecordingVoice = false;
+          micBtn.style.color = "#94A3B8";
+          return;
+        }
+        try {
+          recognitionInstance = new SpeechRecognition();
+          recognitionInstance.lang = "en-US";
+          recognitionInstance.continuous = false;
+          recognitionInstance.interimResults = true;
+          recognitionInstance.onstart = () => {
+            isRecordingVoice = true;
+            micBtn.style.color = "#EF4444";
+          };
+          recognitionInstance.onresult = (e) => {
+            const tr = Array.from(e.results).map(r => r[0].transcript).join("");
+            if (textInput) {
+              textInput.value = tr;
+              handleInputChange();
+            }
+          };
+          recognitionInstance.onend = () => {
+            isRecordingVoice = false;
+            micBtn.style.color = "#94A3B8";
+          };
+          recognitionInstance.onerror = () => {
+            isRecordingVoice = false;
+            micBtn.style.color = "#94A3B8";
+          };
+          recognitionInstance.start();
+        } catch (e) {
+          isRecordingVoice = false;
+          micBtn.style.color = "#94A3B8";
         }
       });
     }
 
-    if (textInput) {
-      textInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-          e.preventDefault();
-          triggerMessageSend();
-        }
-      });
-      textInput.addEventListener("input", () => {
-        if (sendButton) {
-          sendButton.disabled = textInput.value.trim() === "";
-        }
-        resetIdleTimer();
+    widgetContainer.querySelector(".iso-minimize-btn").addEventListener("click", minimizeChat);
+    widgetContainer.querySelector(".iso-close-btn").addEventListener("click", handleCloseButtonClick);
+
+    const calloutCloseBtn = widgetContainer.querySelector(".iso-callout-close");
+    if (calloutCloseBtn) {
+      calloutCloseBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        dismissHelpNotification();
       });
     }
+
+    if (helpNotificationEl) {
+      helpNotificationEl.addEventListener("click", () => {
+        dismissHelpNotification();
+        openChat();
+      });
+    }
+
+    textInput.addEventListener("input", () => {
+      resetIdleTimer();
+      const hasText = textInput.value.trim() !== "";
+      sendButton.disabled = !hasText;
+      if (config.botUIConfigs && config.botUIConfigs.botChatSubmitButton === false) {
+        sendButton.style.display = hasText ? "flex" : "none";
+      }
+    });
+
+    textInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        triggerMessageSend();
+      }
+    });
+
+    sendButton.addEventListener("click", triggerMessageSend);
   }
 
   function handleToggleClick() {
-    if (isChatOpen) closeChat();
-    else openChat();
+    dismissHelpNotification();
+    if (isChatOpen) {
+      minimizeChat();
+    } else {
+      openChat();
+    }
   }
 
+  // Welcome message is pulled directly from MongoDB config as soon as the bot opens
   function openChat() {
+    dismissHelpNotification();
     isChatOpen = true;
     isMinimized = false;
-    if (!widgetContainer || !chatBody) {
-      createChatbotDOM();
-    }
-    if (chatWindow) {
-      chatWindow.classList.remove("iso-minimized");
-      chatWindow.classList.add("iso-open");
-      chatWindow.setAttribute("aria-hidden", "false");
-    }
-    if (chatToggle) chatToggle.classList.add("iso-active");
-    dismissHelpNotification();
+    widgetContainer.classList.add("iso-active");
+    chatWindow.setAttribute("aria-hidden", "false");
+    resetIdleTimer();
 
-    if (chatBody && chatHistory.length === 0) {
-      loadChatHistory();
+    // Only render welcome messages if there is no ongoing conversation in DOM or history
+    const hasRenderedMessages = chatBody && chatBody.querySelectorAll(".iso-message").length > 0;
+    if (!hasRenderedMessages && (!chatHistory || chatHistory.length === 0)) {
+      renderWelcomeMessages();
     }
-    if (textInput) {
-      setTimeout(() => { if (textInput) textInput.focus(); }, 150);
+
+    setTimeout(scrollToBottom, 80);
+    if (window.innerWidth > 480 && textInput && !isSessionEnded) {
+      textInput.disabled = false;
+      textInput.focus();
     }
-    scrollToBottom();
   }
 
   function minimizeChat(e) {
-    if (e) e.stopPropagation();
-    isMinimized = !isMinimized;
-    if (chatWindow) {
-      if (isMinimized) chatWindow.classList.add("iso-minimized");
-      else chatWindow.classList.remove("iso-minimized");
-    }
+    if (e && e.preventDefault) e.preventDefault();
+    if (e && e.stopPropagation) e.stopPropagation();
+    isChatOpen = false;
+    isMinimized = true;
+    widgetContainer.classList.remove("iso-active");
+    chatWindow.setAttribute("aria-hidden", "true");
   }
 
+
+  // --------------------------------------------------------
+  // END CHAT & SURVEY FLOW
+  // --------------------------------------------------------
   function handleCloseButtonClick(e) {
-    if (e) e.stopPropagation();
-    const hasUserExchanges = chatHistory.some(m => m.sender === "user");
-    if (hasUserExchanges) {
-      showEndChatForm("user_close_click");
-    } else {
-      finalizeCloseChat();
-    }
-  }
+    if (e && e.preventDefault) e.preventDefault();
+    if (e && e.stopPropagation) e.stopPropagation();
 
-  function showEndChatForm(reason = "cross_icon") {
-    const surveyForm = (config.customForms || []).find(f => f.name === "survey" && f.status === "enabled");
-    if (!surveyForm) {
+    // If survey form is already displayed, clicking cross a 2nd time closes the window
+    if (chatBody && chatBody.querySelector(".iso-end-chat-form")) {
       finalizeCloseChat();
       return;
     }
-    if (textInput) textInput.disabled = true;
-    if (sendButton) sendButton.disabled = true;
+
+    // Always show the end chat survey form inside the widget
+    appendMessage("bot", "Before you leave, please rate your experience with us today:", false, { isSystem: true, showFeedback: false });
+    showEndChatForm("cross_icon");
+  }
+
+  function showEndChatForm(reason = "cross_icon") {
+    if (chatBody && chatBody.querySelector(".iso-end-chat-form")) return;
+
+    let surveyForm = (config.customForms || []).find(f => f.name === "survey" || (f.intent || []).includes("end_chat"));
+    if (!surveyForm) {
+      surveyForm = {
+        type: "form",
+        name: "survey",
+        title: "Session Feedback & Rating",
+        showDownloadButton: true,
+        showCancelledButton: true,
+        cancelledButtonTitle: "Skip & Close",
+        payload: {
+          fields: [
+            { title: "Rating", name: "rating", type: "rating", validate: { required: true } },
+            { title: "Comments / Feedback (Optional)", name: "feedback", type: "textarea", validate: { required: false } },
+            { title: "Closed", name: "status", type: "hidden", validate: { required: false } }
+          ],
+          submitButtonTitle: "Submit & End Chat",
+          downloadTranscriptButtonTitle: "Download Transcript"
+        }
+      };
+    }
+
+    if (textInput) {
+      textInput.disabled = true;
+      textInput.placeholder = "Chat session ended.";
+    }
+    if (sendButton) {
+      sendButton.disabled = true;
+    }
+
     renderCustomForm(surveyForm, true);
   }
 
   function finalizeCloseChat() {
     isChatOpen = false;
     isMinimized = false;
-    if (chatWindow) {
-      chatWindow.classList.remove("iso-open", "iso-minimized");
-      chatWindow.setAttribute("aria-hidden", "true");
+    isSessionEnded = true;
+
+    // End conversation session and clear chat history from memory and localStorage
+    chatHistory = [];
+    try {
+      localStorage.removeItem(getHistoryKey());
+      localStorage.removeItem("iso_history_ISOBot");
+      localStorage.removeItem("cbot_history_ISOBot");
+      sessionStorage.removeItem("iso_chat_session_id");
+    } catch (e) {
+      console.warn("[ISO Chatbot] Error clearing localStorage on close:", e);
     }
-    if (chatToggle) chatToggle.classList.remove("iso-active");
-    if (textInput) textInput.disabled = false;
-    if (sendButton) sendButton.disabled = true;
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
+
+    if (chatBody) {
+      chatBody.innerHTML = "";
+    }
+
+    removeTypingIndicator();
+    hideQuickReplies();
+
+    if (textInput) {
+      textInput.disabled = false;
+      textInput.value = "";
+      textInput.placeholder = (config.botUIConfigs && config.botUIConfigs.DefaultEmptyMessage) || config.placeholderText || "Message ISO Bot...";
+    }
+    if (sendButton) {
+      sendButton.disabled = true;
+    }
+
+    resetIdleTimer();
+    idleMessagesSentCount = 0;
+
+    widgetContainer.classList.remove("iso-active");
+    chatWindow.setAttribute("aria-hidden", "true");
   }
 
   function closeChat() {
-    finalizeCloseChat();
+    handleCloseButtonClick();
   }
 
+
   function triggerMessageSend() {
-    if (!textInput) return;
-    const msg = textInput.value.trim();
-    if (!msg) return;
+    if (isSessionEnded) return;
+    const text = textInput.value.trim();
+    if (!text || isTyping) return;
 
-    appendMessage("user", msg);
-    textInput.value = "";
-    if (sendButton) sendButton.disabled = true;
     resetIdleTimer();
+    appendMessage("user", text);
+    textInput.value = "";
+    sendButton.disabled = true;
+    if (config.botUIConfigs && config.botUIConfigs.botChatSubmitButton === false) {
+      sendButton.style.display = "none";
+    }
 
-    getBotResponse(msg);
+    getBotResponse(text);
   }
 
   // --------------------------------------------------------
-  // 8. HELP NOTIFICATION POPUP & IDLE TIMER
+  // 8. HELP NOTIFICATION SCHEDULER
   // --------------------------------------------------------
   function initHelpNotification() {
     const ui = config.botUIConfigs || {};
-    if (!helpNotificationEl || !ui.helpNotificationRenderMsg) return;
+    const renderTime = parseMongoNumber(ui.helpNotificationRenderTime, 10000);
+    const renderMsg = ui.helpNotificationRenderMsg;
 
-    const delay = parseMongoNumber(ui.helpNotificationRenderTime, 10000);
+    if (!renderMsg || renderTime <= 0) return;
+
     helpNotificationTimer = setTimeout(() => {
-      if (!isChatOpen && !helpNotificationDismissed) {
+      if (!isChatOpen && !helpNotificationDismissed && helpNotificationEl) {
         helpNotificationEl.style.display = "block";
       }
-    }, delay);
-
-    const closeBtn = helpNotificationEl.querySelector(".iso-callout-close");
-    if (closeBtn) {
-      closeBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        dismissHelpNotification();
-      });
-    }
+    }, renderTime);
   }
 
   function dismissHelpNotification() {
@@ -1137,65 +1930,127 @@
     if (helpNotificationEl) helpNotificationEl.style.display = "none";
   }
 
+  // --------------------------------------------------------
+  // 9. IDLE STATE INACTIVITY MONITORING (20-MIN AUTO-END)
+  // --------------------------------------------------------
+  const MAX_INACTIVITY_TIMEOUT_SECONDS = 20 * 60; // 20 minutes
+
   function startIdleMonitoring() {
     if (idleCheckInterval) clearInterval(idleCheckInterval);
     idleCheckInterval = setInterval(() => {
       if (!isChatOpen || isSessionEnded) return;
-      idleSeconds += 5;
 
-      const idleMsgs = config.botUIConfigs?.idleStatMessages || [];
-      if (idleMessagesSentCount < idleMsgs.length) {
-        const target = idleMsgs[idleMessagesSentCount];
-        if (idleSeconds >= target.time) {
-          appendMessage("bot", target.message, false, { isIdleNotice: true });
-          idleMessagesSentCount++;
-          if (idleMessagesSentCount >= idleMsgs.length) {
-            handleInactivityTimeout();
+      idleSeconds++;
+
+      // Nudge messages configured in botUIConfigs
+      const idleConfigs = (config.botUIConfigs && config.botUIConfigs.idleStatMessages) || [];
+      if (idleConfigs && idleConfigs.length > 0) {
+        for (let i = idleMessagesSentCount; i < idleConfigs.length; i++) {
+          const threshold = parseMongoNumber(idleConfigs[i].time, 0);
+          if (threshold > 0 && idleSeconds >= threshold) {
+            appendMessage("bot", idleConfigs[i].message, false, { isTimeout: true, isIdle: true, showFeedback: false });
+            idleMessagesSentCount = i + 1;
+
+            // Check if this was the last configured idle message (the concluding message)
+            if (idleMessagesSentCount >= idleConfigs.length) {
+              handleLastIdleMessageAutoClose();
+            }
+            break;
           }
         }
       }
-    }, 5000);
+
+      // 20-minute fallback inactivity limit
+      if (idleSeconds >= MAX_INACTIVITY_TIMEOUT_SECONDS) {
+        handleLastIdleMessageAutoClose();
+      }
+    }, 1000);
+  }
+
+  function handleLastIdleMessageAutoClose() {
+    if (isSessionEnded) return;
+
+    if (textInput) {
+      textInput.disabled = true;
+      textInput.placeholder = "Chat session ended due to inactivity.";
+    }
+    if (sendButton) {
+      sendButton.disabled = true;
+    }
+
+    const currentSessionId = sessionStorage.getItem("iso_chat_session_id") || getOrCreateSessionId();
+    const tenantIdValue = config.tenantId || (config.botUIConfigs && config.botUIConfigs.tenantId) || "onestop";
+    const botIdValue = config.botId || "isobot";
+    const baseEndpoint = config.chatApiUrl || config.apiEndpoint || DEFAULT_CHAT_API_URL;
+
+    // 1. Trigger end_chat session-end on the backend
+    try {
+      const endSessionEndpoint = baseEndpoint.replace(/\/chat\/?$/, "/chat/session-end");
+      fetch(endSessionEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId: currentSessionId,
+          tenantId: tenantIdValue,
+          botId: botIdValue,
+          rating: null,
+          feedback: "Ended automatically after last idle message without form",
+          formData: {
+            status: "Ended_Auto_Idle_Last_Message",
+            intent: "end_chat",
+            reason: "no_response_timeout"
+          }
+        }),
+        keepalive: true
+      }).catch(() => {});
+    } catch (e) {}
+
+    // 2. Wait 3 seconds so the user can read the concluding message, then close the chat window cleanly without showing the form
+    setTimeout(() => {
+      finalizeCloseChat();
+    }, 3000);
   }
 
   function resetIdleTimer() {
     idleSeconds = 0;
   }
 
-  function handleInactivityTimeout() {
-    if (isSessionEnded) return;
-    endChatSession({ reason: "inactivity_timeout" });
-  }
-
-  // Unified session termination handler
-  function endChatSession({ reason = "manual", feedbackData = {} } = {}) {
+  function endChatSession(reason = "inactivity") {
     if (isSessionEnded) return;
     isSessionEnded = true;
 
-    const activeSessionId = sessionStorage.getItem("iso_chat_session_id");
-    if (activeSessionId) {
-      const endpoint = config.chatApiUrl || config.apiEndpoint || DEFAULT_CHAT_API_URL;
-      const endEndpoint = endpoint.replace(/\/chat\/?$/, "/chat/session-end");
-      fetch(endEndpoint, {
+    // Send session-end event to backend
+    const currentSessionId = sessionStorage.getItem("iso_chat_session_id");
+    if (currentSessionId) {
+      fetch(config.chatApiUrl ? config.chatApiUrl.replace(/\/chat\/?$/, "/chat/session-end") : DEFAULT_CHAT_API_URL.replace(/\/chat\/?$/, "/chat/session-end"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          sessionId: activeSessionId,
+          sessionId: currentSessionId,
           tenantId: config.tenantId || "onestop",
-          botId: config.botId,
-          reason,
-          rating: feedbackData.rating || null,
-          feedback: feedbackData.feedback || ""
-        }),
-        keepalive: true
+          botId: config.botId || "isobot",
+          formData: { status: "Ended_Auto_Inactivity_20m" }
+        })
       }).catch(() => {});
-      sessionStorage.removeItem("iso_chat_session_id");
     }
 
     if (textInput) {
       textInput.disabled = true;
-      textInput.placeholder = "Chat session concluded.";
+      textInput.placeholder = "Chat session ended due to inactivity.";
     }
     if (sendButton) sendButton.disabled = true;
+
+    const banner = document.createElement("div");
+    banner.className = "iso-session-ended";
+    banner.innerHTML = `
+      <div style="font-size:12px; color:#64748B;">This session has timed out after 20 minutes.</div>
+      <button class="iso-restart-btn">Restart Chat</button>
+    `;
+    banner.querySelector(".iso-restart-btn").addEventListener("click", () => {
+      restartChatSession();
+    });
+    chatBody.appendChild(banner);
+    scrollToBottom();
   }
 
   function restartChatSession() {
@@ -1204,13 +2059,13 @@
     idleMessagesSentCount = 0;
     if (textInput) {
       textInput.disabled = false;
-      textInput.placeholder = (config.botUIConfigs && config.botUIConfigs.DefaultEmptyMessage) || "Type your message...";
+      textInput.placeholder = (config.botUIConfigs && config.botUIConfigs.DefaultEmptyMessage) || "Message ISO Bot...";
     }
     clearChatHistory();
   }
 
   // --------------------------------------------------------
-  // 9. MARKDOWN & RICH FORMATTING PARSER
+  // 10. MESSAGE RENDERING & FEEDBACK
   // --------------------------------------------------------
   function escapeHTML(str) {
     return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -1220,21 +2075,58 @@
     if (!text) return "";
     let str = String(text);
 
-    // Sanitize document tags
+    // Sanitize any raw LLM document citations like 【Document 1】, [Document 1], 【source】
     str = str.replace(/【(?:Document|Source|Doc)?\s*\d+[^】]*】/gi, "");
     str = str.replace(/【[^】]+】/g, "");
+    str = str.replace(/\s*\[(?:Document|Doc)\s*\d+[^\]]*\]/gi, "");
+    str = str.replace(/\s*\[\d+†source\]/gi, "");
+    str = str.replace(/\s*\[\d+:\d+†source\]/gi, "");
 
-    // 1. Code blocks
+    // Normalize multi-line cells inside tables (join lines starting with bullet / dash / text)
+    const lines = str.split("\n");
+    const normalizedLines = [];
+    let inTable = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const isTableRow = /^\|.*\|$/.test(line.trim());
+      const isTableSeparator = /^\|[\s\-:\|]+\|$/.test(line.trim());
+
+      if (isTableRow || isTableSeparator) {
+        inTable = true;
+        normalizedLines.push(line);
+      } else if (inTable && (line.trim().startsWith("•") || line.trim().startsWith("-") || line.trim().startsWith("*") || (line.trim() && !line.includes("|")))) {
+        if (normalizedLines.length > 0 && normalizedLines[normalizedLines.length - 1].startsWith("|")) {
+          // If previous row had pipes, append inside last cell before closing pipe
+          const lastIdx = normalizedLines.length - 1;
+          const lastLine = normalizedLines[lastIdx];
+          if (lastLine.endsWith("|")) {
+            normalizedLines[lastIdx] = lastLine.slice(0, -1) + "<br/>• " + line.replace(/^[•\-*]\s*/, "").trim() + " |";
+          } else {
+            normalizedLines[lastIdx] += "<br/>" + line.trim();
+          }
+        } else {
+          normalizedLines.push(line);
+          inTable = false;
+        }
+      } else {
+        inTable = false;
+        normalizedLines.push(line);
+      }
+    }
+    str = normalizedLines.join("\n");
+
+    // 1. Code blocks with copy button
     const codeBlocks = [];
     str = str.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (match, lang, code) => {
       const idx = codeBlocks.length;
       codeBlocks.push(`
-        <div class="iso-code-block">
-          <div class="iso-code-header">
+        <div class="iso-code-block" style="position:relative;margin:8px 0;background:#0F172A;border-radius:8px;overflow:hidden;border:1px solid #334155;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 10px;background:#1E293B;color:#94A3B8;font-size:11px;font-family:monospace;border-bottom:1px solid #334155;">
             <span>${lang || 'code'}</span>
-            <button type="button" class="iso-copy-code-btn" onclick="IsoChat.copyCode(this)">Copy Code</button>
+            <button type="button" class="iso-copy-code-btn" onclick="IsoChat.copyCode(this)" style="background:transparent;border:none;color:#94A3B8;cursor:pointer;font-size:11px;padding:2px 6px;border-radius:4px;">Copy</button>
           </div>
-          <pre><code class="language-${lang}">${escapeHTML(code.trim())}</code></pre>
+          <pre class="iso-md-pre" style="margin:0;padding:10px 12px;overflow-x:auto;color:#F8FAFC;font-size:12px;line-height:1.4;"><code class="language-${lang}">${escapeHTML(code.trim())}</code></pre>
         </div>
       `);
       return `%%CODEBLOCK_${idx}%%`;
@@ -1251,12 +2143,17 @@
     function parseInline(txt) {
       let t = txt;
       t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      t = t.replace(/__([^_]+)__/g, "<strong>$1</strong>");
       t = t.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+      t = t.replace(/_([^_]+)_/g, "<em>$1</em>");
+      // Markdown links: [Title](url)
       t = t.replace(/\[([^\]]+)\]\(((?:https?:\/\/|\/)[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="iso-md-link">$1</a>');
+      // Auto-links: <https://example.com>
+      t = t.replace(/<((?:https?:\/\/)[^>]+)>/g, '<a href="$1" target="_blank" rel="noopener noreferrer" class="iso-md-link">$1</a>');
       return t;
     }
 
-    // 3. Tables
+    // 3. Markdown Tables
     str = str.replace(/(?:(?:^|\n)\|[^\n]+\|\r?\n\|[\s\-:\|]+\|\r?\n(?:\|[^\n]+\|\r?\n?)+)/g, (tableBlock) => {
       const rows = tableBlock.trim().split("\n").map(l => l.trim()).filter(Boolean);
       if (rows.length < 2) return tableBlock;
@@ -1273,24 +2170,40 @@
       const thead = "<thead>" + parseRow(headerLine, true) + "</thead>";
       const tbody = "<tbody>" + bodyLines.map(l => parseRow(l, false)).join("") + "</tbody>";
 
-      return `\n<div class="iso-md-table-wrap"><table class="iso-md-table">${thead}${tbody}</table></div>\n`;
+      return `\n<div class="iso-table-wrapper"><table class="iso-md-table">${thead}${tbody}</table></div>\n`;
     });
 
-    // 4. Headings & Lists
-    str = str.replace(/^### (.*$)/gim, '<h4 style="margin:4px 0;font-size:13px;font-weight:bold;">$1</h4>');
-    str = str.replace(/^## (.*$)/gim, '<h3 style="margin:6px 0;font-size:14px;font-weight:bold;">$1</h3>');
-    str = str.replace(/^# (.*$)/gim, '<h2 style="margin:8px 0;font-size:15px;font-weight:bold;">$1</h2>');
+    // 4. Headings
+    str = str.replace(/^### (.*$)/gim, '<h4 class="iso-md-h4">$1</h4>');
+    str = str.replace(/^## (.*$)/gim, '<h3 class="iso-md-h3">$1</h3>');
+    str = str.replace(/^# (.*$)/gim, '<h2 class="iso-md-h2">$1</h2>');
 
+    // 5. Horizontal rules
+    str = str.replace(/^(?:---|___|\*\*\*)\s*$/gim, '<hr class="iso-md-hr" />');
+
+    // 6. Bullet lists
     str = str.replace(/(?:^|\n)(?:[*\-•]\s+[^\n]+(?:\n[*\-•]\s+[^\n]+)*)/g, (listBlock) => {
       const items = listBlock.trim().split("\n").map(l => l.replace(/^[*\-•]\s+/, "").trim());
-      return "\n<ul style='margin:4px 0;padding-left:18px;'>" + items.map(it => `<li>${parseInline(it)}</li>`).join("") + "</ul>\n";
+      return "\n<ul class=\"iso-md-ul\">" + items.map(it => `<li>${parseInline(it)}</li>`).join("") + "</ul>\n";
     });
 
-    str = parseInline(str);
-    str = str.replace(/\n\n+/g, "<br/><br/>").replace(/\n/g, "<br/>");
-    str = str.replace(/<br\/><br\/>(<div|<ul|<h2|<h3|<h4)/gi, "$1");
-    str = str.replace(/(<\/div>|<\/ul>|<\/h2>|<\/h3>|<\/h4>)<br\/><br\/>/gi, "$1");
+    // 7. Numbered lists
+    str = str.replace(/(?:^|\n)(?:\d+\.\s+[^\n]+(?:\n\d+\.\s+[^\n]+)*)/g, (listBlock) => {
+      const items = listBlock.trim().split("\n").map(l => l.replace(/^\d+\.\s+/, "").trim());
+      return "\n<ol class=\"iso-md-ol\">" + items.map(it => `<li>${parseInline(it)}</li>`).join("") + "</ol>\n";
+    });
 
+    // 8. General inline formatting
+    str = parseInline(str);
+
+    // 9. Convert remaining line breaks into <br/>
+    str = str.replace(/\n\n+/g, "<br/><br/>").replace(/\n/g, "<br/>");
+    str = str.replace(/<br\/><br\/>(<div|<ul|<ol|<h2|<h3|<h4|<hr)/gi, "$1");
+    str = str.replace(/(<\/div>|<\/ul>|<\/ol>|<\/h2>|<\/h3>|<\/h4>|<hr \/>)<br\/><br\/>/gi, "$1");
+    str = str.replace(/<br\/>(<div|<ul|<ol|<h2|<h3|<h4|<hr)/gi, "$1");
+    str = str.replace(/(<\/div>|<\/ul>|<\/ol>|<\/h2>|<\/h3>|<\/h4>|<hr \/>)<br\/>/gi, "$1");
+
+    // 10. Restore code blocks & inline codes
     str = str.replace(/%%CODEBLOCK_(\d+)%%/g, (m, idx) => codeBlocks[parseInt(idx)] || "");
     str = str.replace(/%%INLINECODE_(\d+)%%/g, (m, idx) => inlineCodes[parseInt(idx)] || "");
 
@@ -1298,14 +2211,38 @@
   }
 
   function isWelcomeOrTimeoutMessage(text, options = {}) {
-    if (options.isWelcome || options.isIdleNotice) return true;
-    const greetings = config.greetingMessage || [];
-    return greetings.some(g => g.trim() === String(text).trim());
+    if (options && (options.isWelcome || options.isTimeout || options.isIdle || options.isSystem || options.showFeedback === false || options.showThumbs === false)) {
+      return true;
+    }
+    if (typeof text !== "string") return false;
+    const cleanText = text.trim();
+
+    // Check against welcome messages
+    const welcomeMsgs = getWelcomeMessages();
+    if (welcomeMsgs.some(w => typeof w === "string" && w.trim() === cleanText)) {
+      return true;
+    }
+
+    // Check against configured idle / timeout messages
+    const idleConfigs = (config.botUIConfigs && config.botUIConfigs.idleStatMessages) || [];
+    if (idleConfigs.some(idle => idle && idle.message && idle.message.trim() === cleanText)) {
+      return true;
+    }
+
+    // Check common timeout / system / goodbye substrings
+    const lower = cleanText.toLowerCase();
+    if (lower.includes("ending this chat session") ||
+        lower.includes("ended due to inactivity") ||
+        lower.includes("are you still there") ||
+        lower.includes("rate your experience with us today") ||
+        lower.includes("thank you for chatting with us! have a wonderful day") ||
+        lower.includes("thank you for chatting with us. we value your feedback")) {
+      return true;
+    }
+
+    return false;
   }
 
-  // --------------------------------------------------------
-  // 10. MESSAGE RENDERING
-  // --------------------------------------------------------
   function renderMessage(sender, text, isHtml = false, timestampStr = null, id = null, options = {}) {
     const messageEl = document.createElement("div");
     messageEl.className = `iso-message iso-message-${sender}`;
@@ -1313,50 +2250,61 @@
     messageEl.setAttribute("data-msg-id", msgId);
 
     const timestamp = timestampStr || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
     const ui = config.botUIConfigs || {};
     const botStartImg = ui.botChatStartImage || config.botChatStartImage || ui.logoUrl || config.botLogo;
-
     let avatarHtml = "";
     if (sender === "bot") {
       avatarHtml = `<div class="iso-msg-avatar" title="${config.botName || 'ISO Bot'}">${renderLogoHtml(botStartImg, config.botName)}</div>`;
     } else if (sender === "user") {
       avatarHtml = `
         <div class="iso-msg-avatar iso-user-avatar" title="You">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
         </div>
       `;
     }
 
-    let processedText = sender === "user" ? escapeHTML(text) : (isHtml ? text : parseMarkdown(text));
-
-    // Source Citations
-    let sourcesHtml = "";
-    if (sender === "bot" && Array.isArray(options.sources) && options.sources.length > 0) {
-      const chips = options.sources.slice(0, 3).map(s => {
-        const title = s.title || s.name || s.document || "Knowledge Document";
-        return `<span class="iso-source-chip" title="${escapeHTML(title)}">📄 ${escapeHTML(title.slice(0, 24))}</span>`;
-      }).join("");
-      sourcesHtml = `<div class="iso-sources-list">${chips}</div>`;
+    let processedText = "";
+    if (sender === "user") {
+      processedText = escapeHTML(text);
+    } else {
+      processedText = isHtml ? text : parseMarkdown(text);
     }
 
-    // Feedback row for bot messages
-    let feedbackHtml = "";
+    // Determine whether to show like / dislike thumbs
     const isExempt = isWelcomeOrTimeoutMessage(text, options);
-    if (sender === "bot" && !isExempt) {
+    const allowThumbs = (ui.showThumbUpDownFeedbackform !== false) && !isExempt;
+
+    // Feedback Thumbs Up / Down + Copy + TTS row
+    let feedbackHtml = "";
+    if (sender === "bot") {
+      const thumbsHtml = allowThumbs ? `
+        <button class="iso-feedback-btn iso-like-btn" title="Helpful" aria-label="Like response">
+          ${renderFeedbackIcon(ui.likeIcon, "like")}
+        </button>
+        <button class="iso-feedback-btn iso-dislike-btn" title="Not helpful" aria-label="Dislike response">
+          ${renderFeedbackIcon(ui.dislikeIcon, "dislike")}
+        </button>
+      ` : "";
+
       feedbackHtml = `
         <div class="iso-feedback-row">
-          <button type="button" class="iso-feedback-btn iso-copy-btn" title="Copy text" aria-label="Copy text">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          <button type="button" class="iso-feedback-btn iso-copy-btn" title="Copy response" aria-label="Copy response">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
           </button>
-          <button type="button" class="iso-feedback-btn iso-tts-btn" title="Listen" aria-label="Listen">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+          <button type="button" class="iso-feedback-btn iso-tts-btn" title="Read aloud" aria-label="Read aloud">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
           </button>
-          <button class="iso-feedback-btn iso-like-btn" title="Helpful" aria-label="Like response">
-            ${renderFeedbackIcon(ui.likeIcon, "like")}
-          </button>
-          <button class="iso-feedback-btn iso-dislike-btn" title="Not helpful" aria-label="Dislike response">
-            ${renderFeedbackIcon(ui.dislikeIcon, "dislike")}
-          </button>
+          ${thumbsHtml}
           <span class="iso-feedback-note"></span>
         </div>
       `;
@@ -1367,26 +2315,25 @@
       <div class="iso-bubble-wrapper">
         <div class="iso-msg-bubble">
           ${processedText}
-          ${sourcesHtml}
         </div>
         ${feedbackHtml}
         <span class="iso-msg-time">${timestamp}</span>
       </div>
     `;
 
-    // Bind action events
-    if (sender === "bot" && !isExempt) {
-      const copyBtn = messageEl.querySelector(".iso-copy-btn");
-      const ttsBtn = messageEl.querySelector(".iso-tts-btn");
+    // Bind feedback button & tools events
+    if (sender === "bot") {
       const likeBtn = messageEl.querySelector(".iso-like-btn");
       const dislikeBtn = messageEl.querySelector(".iso-dislike-btn");
+      const copyBtn = messageEl.querySelector(".iso-copy-btn");
+      const ttsBtn = messageEl.querySelector(".iso-tts-btn");
       const note = messageEl.querySelector(".iso-feedback-note");
 
       if (copyBtn) {
         copyBtn.addEventListener("click", () => {
           navigator.clipboard.writeText(text).then(() => {
             if (note) {
-              note.textContent = "Copied! 📋";
+              note.textContent = "Copied to clipboard! 📋";
               setTimeout(() => { if (note.textContent.includes("Copied")) note.textContent = ""; }, 2000);
             }
           });
@@ -1394,31 +2341,55 @@
       }
 
       if (ttsBtn) {
-        ttsBtn.addEventListener("click", () => readAloudText(text, ttsBtn));
+        ttsBtn.addEventListener("click", () => {
+          readAloudText(text, ttsBtn);
+        });
       }
+
+      const submitFeedbackPayload = (type) => {
+        const currentSessionId = sessionStorage.getItem("iso_chat_session_id") || getOrCreateSessionId();
+        const baseEndpoint = config.chatApiUrl || config.apiEndpoint || DEFAULT_CHAT_API_URL;
+        const feedbackEndpoint = baseEndpoint.replace(/\/chat\/?$/, "/chat/feedback");
+
+        fetch(feedbackEndpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId: currentSessionId,
+            tenantId: config.tenantId || "onestop",
+            botId: config.botId || "isobot",
+            type: type,
+            response: typeof text === "string" ? text.slice(0, 300) : "",
+            messageId: msgId
+          })
+        }).catch(() => {});
+      };
 
       if (likeBtn) {
         likeBtn.addEventListener("click", () => {
-          likeBtn.classList.add("iso-voted-like");
-          if (dislikeBtn) dislikeBtn.disabled = true;
+          likeBtn.classList.add("iso-voted", "iso-voted-like");
+          if (dislikeBtn) {
+            dislikeBtn.classList.remove("iso-voted", "iso-voted-dislike");
+            dislikeBtn.disabled = true;
+          }
           likeBtn.disabled = true;
-          if (note) note.textContent = "Thank you! 👍";
+          if (note) note.textContent = "Thank you for the feedback! 👍";
+          submitFeedbackPayload("like");
         });
       }
 
       if (dislikeBtn) {
         dislikeBtn.addEventListener("click", () => {
-          dislikeBtn.classList.add("iso-voted-dislike");
-          if (likeBtn) likeBtn.disabled = true;
+          dislikeBtn.classList.add("iso-voted", "iso-voted-dislike");
+          if (likeBtn) {
+            likeBtn.classList.remove("iso-voted", "iso-voted-like");
+            likeBtn.disabled = true;
+          }
           dislikeBtn.disabled = true;
           if (note) note.textContent = "Feedback recorded. 👎";
+          submitFeedbackPayload("dislike");
         });
       }
-    }
-
-    if (!chatBody) {
-      if (!widgetContainer) createChatbotDOM();
-      if (!chatBody) return null;
     }
 
     chatBody.appendChild(messageEl);
@@ -1426,45 +2397,7 @@
     return messageEl;
   }
 
-  function appendMessage(sender, text, isHtml = false, options = {}) {
-    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const msgId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-    renderMessage(sender, text, isHtml, timestamp, msgId, options);
-    chatHistory.push({ sender, text, timestamp, isHtml, id: msgId, options });
-    if (config.persistHistory) saveChatHistory();
-  }
-
-  function showTypingIndicator() {
-    removeTypingIndicator();
-    if (!chatBody) return;
-    isTyping = true;
-    const el = document.createElement("div");
-    el.className = "iso-message iso-message-bot iso-typing-indicator";
-    el.innerHTML = `
-      <div class="iso-msg-avatar">${renderLogoHtml(config.botUIConfigs?.logoUrl, "ISO")}</div>
-      <div class="iso-msg-bubble iso-typing-bubble">
-        <span class="iso-dot"></span><span class="iso-dot"></span><span class="iso-dot"></span>
-      </div>
-    `;
-    chatBody.appendChild(el);
-    scrollToBottom();
-  }
-
-  function removeTypingIndicator() {
-    isTyping = false;
-    if (!chatBody) return;
-    const el = chatBody.querySelector(".iso-typing-indicator");
-    if (el) el.remove();
-  }
-
-  function scrollToBottom(force = false) {
-    if (!chatBody) return;
-    const isNearBottom = (chatBody.scrollHeight - chatBody.scrollTop - chatBody.clientHeight) < 150;
-    if (force || isNearBottom) {
-      chatBody.scrollTop = chatBody.scrollHeight;
-    }
-  }
-
+    // Session Management Helper
   function getOrCreateSessionId() {
     let sId = sessionStorage.getItem("iso_chat_session_id");
     if (!sId) {
@@ -1474,8 +2407,80 @@
     return sId;
   }
 
+  function endChatSession(feedbackData = {}) {
+    const activeSessionId = sessionStorage.getItem("iso_chat_session_id");
+    if (activeSessionId) {
+      const endpoint = config.chatApiUrl || config.apiEndpoint || DEFAULT_CHAT_API_URL;
+      const endEndpoint = endpoint.replace(/\/chat$/, "/chat/session-end");
+      const tenantIdValue = config.tenantId || config.teanantId || "onestop";
+      try {
+        fetch(endEndpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId: activeSessionId,
+            tenantId: tenantIdValue,
+            botId: config.botId,
+            rating: feedbackData.rating || null,
+            feedback: feedbackData.feedback || ""
+          }),
+          keepalive: true
+        }).catch(() => {});
+      } catch (e) {}
+      sessionStorage.removeItem("iso_chat_session_id");
+    }
+  }
+
+  function appendMessage(sender, text, isHtml = false, options = {}) {
+    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const msgId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    renderMessage(sender, text, isHtml, timestamp, msgId, options);
+
+    // Always maintain in-memory chatHistory for the current session
+    chatHistory.push({ sender, text, timestamp, isHtml, id: msgId, options });
+
+    if (config.persistHistory) {
+      saveChatHistory();
+    }
+  }
+
+  function showTypingIndicator() {
+    if (isTyping) return;
+    isTyping = true;
+
+    const indicator = document.createElement("div");
+    indicator.className = "iso-message iso-message-bot iso-typing-container";
+    const ui = config.botUIConfigs || {};
+    const botStartImg = ui.botChatStartImage || config.botChatStartImage || ui.logoUrl || config.botLogo;
+
+    indicator.innerHTML = `
+      <div class="iso-msg-avatar" title="${config.botName || 'ISO Bot'}">${renderLogoHtml(botStartImg, config.botName)}</div>
+      <div class="iso-typing-indicator">
+        <div class="iso-typing-dot"></div>
+        <div class="iso-typing-dot"></div>
+        <div class="iso-typing-dot"></div>
+      </div>
+    `;
+
+    chatBody.appendChild(indicator);
+    scrollToBottom();
+  }
+
+  function removeTypingIndicator() {
+    if (!isTyping) return;
+    const indicator = chatBody.querySelector(".iso-typing-container");
+    if (indicator) indicator.remove();
+    isTyping = false;
+  }
+
+  function scrollToBottom() {
+    if (chatBody) {
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+  }
+
   // --------------------------------------------------------
-  // 11. CUSTOM FORMS & GRIEVANCE TICKETING INTEGRATION
+  // 11. CUSTOM FORMS (transferCall & survey)
   // --------------------------------------------------------
   function renderCustomForm(formConfig, isEndChatForm = false) {
     if (!formConfig || !formConfig.payload) return;
@@ -1519,48 +2524,83 @@
       }
     });
 
-    const isEndChat = isEndChatForm || formConfig.name === "survey";
-    const submitBtnTitle = payload.submitButtonTitle || (isEndChat ? "Submit Feedback" : "Submit Ticket");
+    const isEndChat = isEndChatForm || formConfig.name === "survey" || formConfig.name === "end_chat";
+    const ui = config.botUIConfigs || {};
+
+    const submitBtnTitle = payload.submitButtonTitle || 
+                           formConfig.submitButtonTitle || 
+                           formConfig.submitText ||
+                           (isEndChat ? (ui.surveySubmitButtonText || ui.endChatSubmitButtonText || ui.sessionEndSubmitButtonTitle) : null) || 
+                           ui.formSubmitButtonTitle || 
+                           "Submit";
+
+    const submitBtnBg = payload.submitButtonColor || 
+                        formConfig.submitButtonColor || 
+                        (isEndChat ? (ui.surveySubmitButtonColor || ui.endChatSubmitButtonColor || ui.sessionEndSubmitButtonColor) : null) || 
+                        ui.formSubmitButtonColor || 
+                        "var(--iso-primary)";
+
+    const submitBtnTextColor = payload.submitButtonTextColor || 
+                               formConfig.submitButtonTextColor || 
+                               (isEndChat ? (ui.surveySubmitButtonTextColor || ui.endChatSubmitButtonTextColor || ui.sessionEndSubmitButtonTextColor) : null) || 
+                               ui.formSubmitButtonTextColor || 
+                               "#ffffff";
+
     const downloadTranscriptBtn = formConfig.showDownloadButton ? `
-      <button type="button" class="iso-form-download">Download Transcript</button>
+      <button type="button" class="iso-form-download">
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        ${payload.downloadTranscriptButtonTitle || "Download Transcript"}
+      </button>
     ` : "";
+
+    const cancelTitle = formConfig.cancelledButtonTitle || (isEndChat ? "Skip & Close" : "Cancel");
     const cancelBtn = (formConfig.showCancelledButton || isEndChat) ? `
-      <button type="button" class="iso-form-cancel">${isEndChat ? "Skip & Close" : "Cancel"}</button>
+      <button type="button" class="iso-form-cancel">${cancelTitle}</button>
     ` : "";
 
     formWrapper.innerHTML = `
-      <div class="iso-form-title">${formConfig.title || (isEndChat ? "Feedback Survey" : "Support Ticket Form")}</div>
+      <div class="iso-form-title">${formConfig.title || "Form"}</div>
       <form class="iso-dynamic-form">
         ${fieldsHtml}
         <div class="iso-form-actions">
-          <button type="submit" class="iso-form-submit">${submitBtnTitle}</button>
+          <button type="submit" class="iso-form-submit" style="background-color: ${submitBtnBg}; color: ${submitBtnTextColor}; border: none;">${submitBtnTitle}</button>
           ${downloadTranscriptBtn}
           ${cancelBtn}
         </div>
       </form>
     `;
 
-    // Star rating behavior
-    formWrapper.querySelectorAll(".iso-star-btn").forEach(btn => {
+    // Star rating interaction
+    const starBtns = formWrapper.querySelectorAll(".iso-star-btn");
+    starBtns.forEach(btn => {
       btn.addEventListener("click", () => {
         const val = parseInt(btn.getAttribute("data-val"), 10);
         const parent = btn.closest(".iso-rating-group");
         parent.querySelector("input").value = val;
         parent.querySelectorAll(".iso-star-btn").forEach(b => {
           const bVal = parseInt(b.getAttribute("data-val"), 10);
-          if (bVal <= val) b.classList.add("iso-star-active");
-          else b.classList.remove("iso-star-active");
+          if (bVal <= val) {
+            b.classList.add("iso-star-active");
+          } else {
+            b.classList.remove("iso-star-active");
+          }
         });
       });
     });
 
-    if (formWrapper.querySelector(".iso-form-download")) {
-      formWrapper.querySelector(".iso-form-download").addEventListener("click", downloadTranscript);
-    }
-    if (formWrapper.querySelector(".iso-form-cancel")) {
-      formWrapper.querySelector(".iso-form-cancel").addEventListener("click", () => formWrapper.remove());
+    // Transcript download button
+    const dlBtn = formWrapper.querySelector(".iso-form-download");
+    if (dlBtn) {
+      dlBtn.addEventListener("click", downloadTranscript);
     }
 
+    // Cancel button
+    const cancelAction = formWrapper.querySelector(".iso-form-cancel");
+    if (cancelAction) {
+      cancelAction.addEventListener("click", () => formWrapper.remove());
+    }
+
+    // Form submission
     const formEl = formWrapper.querySelector("form");
     formEl.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -1568,68 +2608,93 @@
       const data = Object.fromEntries(formData.entries());
 
       if (isEndChatForm || formConfig.name === "survey") {
-        formWrapper.innerHTML = `<div style="font-size:12px;color:#10B981;font-weight:700;text-align:center;padding:10px 0;">✓ Thank you for your feedback! Session concluded.</div>`;
-        endChatSession({ reason: "survey_submitted", feedbackData: data });
-        setTimeout(() => finalizeCloseChat(), 1500);
-        return;
-      }
-
-      // Ticketing Grievance Submission
-      const endpoint = config.chatApiUrl || config.apiEndpoint || DEFAULT_CHAT_API_URL;
-      const grievanceEndpoint = endpoint.replace(/\/chat\/?$/, "/grievances");
-      const ticketPayload = {
-        tenantId: config.tenantId || "onestop",
-        botId: config.botId || "isobot",
-        sessionId: getOrCreateSessionId(),
-        student: {
-          fullName: data.FullName || data.name || data.fullName,
-          email: data.Email || data.email,
-          phone: data.Phone || data.phone,
-          username: data.username || data.studentId || ""
-        },
-        department: config.ticketingConfig?.defaultDepartment || "General Support",
-        priority: config.ticketingConfig?.defaultPriority || "medium",
-        title: `Support Ticket: ${(data.AdditionalInformation || 'Chatbot Escalation').slice(0, 60)}`,
-        description: data.AdditionalInformation || `Chatbot ticket created by ${data.FullName || 'User'}`,
-        source: "chatbot",
-        chatTranscript: chatHistory.map(m => ({
-          sender: m.sender,
-          message: m.text,
-          timestamp: m.timestamp || new Date().toISOString()
-        }))
-      };
-
-      try {
-        const res = await fetch(grievanceEndpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(ticketPayload)
-        });
-        const resData = await res.json();
-        const ticketId = (resData && resData.data && resData.data.ticketId) || resData.ticketId || `GRV-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
-
         formWrapper.innerHTML = `
-          <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:12px;text-align:center;">
-            <div style="font-size:13px;font-weight:bold;color:#166534;margin-bottom:4px;">✓ Support Ticket Created</div>
-            <div style="font-size:11px;color:#15803D;margin-bottom:8px;">Ticket ID: <strong style="font-family:monospace;background:#DCFCE7;padding:2px 6px;border-radius:4px;">${ticketId}</strong></div>
-            <div style="font-size:11px;color:#4B5563;">Our staff has received your transcript and will follow up at <strong>${escapeHTML(data.Email || 'your email')}</strong>.</div>
+          <div style="font-size: 13px; color: #10B981; font-weight: 600; text-align: center; padding: 12px 0;">
+            ✓ Thank you for your feedback! Ending chat session...
           </div>
         `;
-      } catch (err) {
-        formWrapper.innerHTML = `<div style="font-size:12px;color:#10B981;font-weight:600;padding:8px 0;text-align:center;">✓ Details received! A representative will follow up with you.</div>`;
+        endChatSession(data);
+        setTimeout(() => {
+          finalizeCloseChat();
+        }, 1500);
+      } else {
+        formWrapper.innerHTML = `
+          <div style="font-size: 13px; color: #10B981; font-weight: 500; text-align: center; padding: 8px 0;">
+            ✓ Information successfully submitted. Thank you!
+          </div>
+        `;
+      }
+
+      if (payload.postbackUrl) {
+        try {
+          await fetch(payload.postbackUrl, {
+            method: payload.method || "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+          });
+        } catch (err) {
+          console.warn("[ISO Chatbot] Form postback request error:", err);
+        }
       }
     });
+
+    if (isEndChatForm || formConfig.name === "survey") {
+      const cancelAction = formWrapper.querySelector(".iso-form-cancel");
+      if (cancelAction) {
+        cancelAction.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          formWrapper.innerHTML = `
+            <div style="font-size: 12px; color: #64748B; text-align: center; padding: 10px 0;">
+              Ending chat session...
+            </div>
+          `;
+          endChatSession({});
+          setTimeout(() => {
+            finalizeCloseChat();
+          }, 1000);
+        };
+      }
+    }
 
     chatBody.appendChild(formWrapper);
     scrollToBottom();
   }
 
   function downloadTranscript() {
-    const lines = ["ISO AI CHAT TRANSCRIPT", "========================", `Date: ${new Date().toLocaleString()}`, ""];
-    chatHistory.forEach(m => {
-      lines.push(`[${m.timestamp || ''}] ${m.sender.toUpperCase()}: ${m.text.replace(/<[^>]+>/g, ' ')}`);
-    });
-    const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
+    let transcriptText = `==============================================\n`;
+    transcriptText += `CHAT TRANSCRIPT: ${(config.botUIConfigs && config.botUIConfigs.botHeaderText) || config.botName || 'Isomorphic AI'}\n`;
+    transcriptText += `Date: ${new Date().toLocaleString()}\n`;
+    transcriptText += `==============================================\n\n`;
+
+    if (Array.isArray(chatHistory) && chatHistory.length > 0) {
+      chatHistory.forEach(item => {
+        const senderName = item.sender === "bot" ? ((config.botUIConfigs && config.botUIConfigs.botHeaderText) || config.botName || 'AI Assistant') : "You";
+        const cleanText = String(item.text || '').replace(/<[^>]*>?/gm, '').trim();
+        if (cleanText) {
+          transcriptText += `[${item.timestamp || ''}] ${senderName}:\n${cleanText}\n\n`;
+        }
+      });
+    } else if (chatBody) {
+      // Fallback: extract messages from DOM if in-memory history was cleared
+      const msgNodes = chatBody.querySelectorAll('.iso-message:not(.iso-typing-container)');
+      msgNodes.forEach(node => {
+        const isBot = node.classList.contains('iso-message-bot');
+        const senderName = isBot ? ((config.botUIConfigs && config.botUIConfigs.botHeaderText) || config.botName || 'AI Assistant') : 'You';
+        const timeEl = node.querySelector('.iso-msg-time');
+        const timeStr = timeEl ? timeEl.textContent.trim() : '';
+        const bubbleEl = node.querySelector('.iso-msg-bubble');
+        const textContent = bubbleEl ? bubbleEl.textContent.trim() : '';
+        if (textContent) {
+          transcriptText += `[${timeStr}] ${senderName}:\n${textContent}\n\n`;
+        }
+      });
+    }
+
+    transcriptText += `==============================================\n`;
+    transcriptText += `End of conversation.\n`;
+
+    const blob = new Blob([transcriptText], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -1641,176 +2706,217 @@
   }
 
   // --------------------------------------------------------
-  // 12. BOT INTELLIGENCE & REAL-TIME STREAMING
+  // 12. BOT INTELLIGENCE & RESPONSES
   // --------------------------------------------------------
   async function getBotResponse(userMsg) {
     showTypingIndicator();
     hideQuickReplies();
 
     const textLower = userMsg.toLowerCase().trim();
-    const endpoint = config.chatApiUrl || config.apiEndpoint || DEFAULT_CHAT_API_URL;
-    const isStreamingSupported = Boolean(config.botUIConfigs?.enableStreaming !== false && window.ReadableStream);
 
-    // Escalation Intent Check
-    const isEscalationIntent = /^(transfer|ticket|grievance|speak to agent|live agent|human|representative|support ticket)\b/i.test(textLower) ||
-                               textLower.includes("live agent") ||
-                               textLower.includes("transfer to live agent") ||
-                               textLower.includes("create ticket");
+    const tenantIdValue = config.tenantId ||
+                          config.teanantId ||
+                          (config.botUIConfigs && (config.botUIConfigs.tenantId || config.botUIConfigs.teanantId)) ||
+                          window.tenantId ||
+                          window.teanantId ||
+                          "onestop";
 
-    if (isEscalationIntent) {
-      removeTypingIndicator();
-      if (config.enableTicketing !== false) {
-        const transferForm = (config.customForms || []).find(f => f.name === "transferCall") || {
-          name: "transferCall",
-          title: "Create Support Ticket / Request Assistance",
-          payload: {
-            fields: [
-              { title: "Full Name", name: "FullName", type: "text", validate: { required: true } },
-              { title: "Email Address", name: "Email", type: "email", validate: { required: true } },
-              { title: "Phone Number", name: "Phone", type: "tel", validate: { required: true } },
-              { title: "Issue Details", name: "AdditionalInformation", type: "textarea", validate: { required: true } }
-            ]
-          }
-        };
-        appendMessage("bot", config.ticketingConfig?.escalationMessage || "I am connecting you with our support team. Please complete your details below to create a support ticket:");
-        renderCustomForm(transferForm);
-        return;
-      } else {
-        appendMessage("bot", "Our knowledge assistant is here to help! If you have further inquiries, feel free to ask your question directly or visit our help center.");
-        showQuickReplies(config.quickReplies);
-        return;
-      }
-    }
-
-    // Goodbye Intent Check
-    const isBye = /^(bye|goodbye|exit|end chat|end session)\b/i.test(textLower);
-    if (isBye) {
-      removeTypingIndicator();
-      appendMessage("bot", "Thank you for chatting with us! Have a wonderful day. Goodbye! 👋");
-      setTimeout(() => showEndChatForm("bye_message"), 500);
-      return;
-    }
-
-    const payload = {
+    // Request payload sending botId, tenantId (and teanantId), and query
+    const requestPayload = {
       query: userMsg,
       message: userMsg,
       botId: config.botId,
-      tenantId: config.tenantId || "onestop",
+      tenantId: tenantIdValue,
+      teanantId: tenantIdValue,
       sessionId: getOrCreateSessionId(),
       history: chatHistory.slice(-10)
     };
 
-    // Attempt Server-Sent Events (SSE) Streaming
-    if (isStreamingSupported) {
+    const endpoint = config.chatApiUrl || config.apiEndpoint || DEFAULT_CHAT_API_URL;
+
+    // Check if user says bye, goodbye, end chat, etc.
+    const isByeMessage = /^(bye|goodbye|bye bye|good bye|exit|end chat|end conversation|close chat)\b/i.test(textLower) ||
+                         textLower === "bye" ||
+                         textLower === "goodbye" ||
+                         textLower === "end chat session";
+
+    if (isByeMessage) {
       try {
-        const streamEndpoint = endpoint.replace(/\/chat\/?$/, "/chat/stream");
-        const res = await fetch(streamEndpoint, {
+        const response = await fetch(endpoint, {
           method: "POST",
-          headers: { "Content-Type": "application/json", "Accept": "text/event-stream" },
-          body: JSON.stringify(payload)
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify(requestPayload)
         });
 
-        if (res.ok && res.body) {
-          removeTypingIndicator();
-          const reader = res.body.getReader();
-          const decoder = new TextDecoder();
-          let accumulatedText = "";
-          let streamMsgEl = null;
+        removeTypingIndicator();
 
-          // Render initial stream message bubble
-          streamMsgEl = renderMessage("bot", "", false, null, null, { streaming: true });
-          const bubbleEl = streamMsgEl.querySelector(".iso-msg-bubble");
-
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            const textChunk = decoder.decode(value, { stream: true });
-            const lines = textChunk.split("\n");
-
-            for (const line of lines) {
-              if (line.startsWith("data:")) {
-                try {
-                  const data = JSON.parse(line.slice(5).trim());
-                  if (data.chunk) {
-                    accumulatedText += data.chunk;
-                    bubbleEl.innerHTML = parseMarkdown(accumulatedText) + `<span class="iso-stream-cursor"></span>`;
-                    scrollToBottom();
-                  } else if (data.done) {
-                    const finalReply = data.fullText || accumulatedText;
-                    bubbleEl.innerHTML = parseMarkdown(finalReply);
-                    chatHistory.push({
-                      sender: "bot",
-                      text: finalReply,
-                      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                      options: { sources: data.sources || [] }
-                    });
-                    if (data.sources && data.sources.length > 0) {
-                      const chips = data.sources.slice(0, 3).map(s => `<span class="iso-source-chip">📄 ${(s.title || 'Document').slice(0, 24)}</span>`).join("");
-                      bubbleEl.innerHTML += `<div class="iso-sources-list">${chips}</div>`;
-                    }
-                    if (data.quickReplies && data.quickReplies.length > 0) {
-                      showQuickReplies(data.quickReplies);
-                    } else {
-                      showQuickReplies(config.quickReplies);
-                    }
-                  }
-                } catch (e) {}
-              }
-            }
-          }
-          return;
+        let botReply = "Thank you for chatting with us! Have a wonderful day. Goodbye! 👋";
+        if (response.ok) {
+          const data = await response.json();
+          botReply = data.response || data.reply || data.message || data.answer || botReply;
         }
+
+        appendMessage("bot", botReply);
       } catch (err) {
-        console.warn("[ISO Chatbot] Streaming unavailable, falling back to standard POST:", err.message);
+        removeTypingIndicator();
+        appendMessage("bot", "Thank you for chatting with us! Have a wonderful day. Goodbye! 👋");
       }
+
+      // Show the End Chat Survey Form right after the goodbye message
+      setTimeout(() => {
+        showEndChatForm("bye_message");
+      }, 600);
+      return;
     }
 
-    // Standard POST fallback
+    // Check customForms intent matches (for other intents like transferCall)
+    const matchedForm = (config.customForms || []).find(f => {
+      if (f.status !== "enabled") return false;
+      return (f.intent || []).some(intent => textLower.includes(intent.replace(/_/g, " ")) || textLower.includes(intent));
+    });
+
+    if (matchedForm) {
+      const delaySec = parseMongoNumber(config.botUIConfigs.transferFormDelay, 5);
+      setTimeout(() => {
+        removeTypingIndicator();
+        if (matchedForm.name === "transferCall") {
+          appendMessage("bot", "I am connecting you with a campus advisor. Please provide your details below so our academic support team can assist you promptly:");
+        } else if (matchedForm.name === "survey") {
+          appendMessage("bot", "Thank you for using Student Services AI. We value your feedback on today's session:");
+        }
+        renderCustomForm(matchedForm);
+      }, delaySec * 1000);
+      return;
+    }
+
     try {
       const response = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify(payload)
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify(requestPayload)
       });
 
       removeTypingIndicator();
+
       if (response.ok) {
-        const data = await response.json();
-        const botReply = data.response || data.reply || data.message || "Thank you for reaching out.";
-        appendMessage("bot", botReply, false, { sources: data.sources || [] });
-        if (data.quickReplies && data.quickReplies.length > 0) {
-          showQuickReplies(data.quickReplies);
+        let data;
+        const contentType = response.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          data = await response.json();
         } else {
-          showQuickReplies(config.quickReplies);
+          const rawText = await response.text();
+          try {
+            data = JSON.parse(rawText);
+          } catch (e) {
+            data = rawText;
+          }
+        }
+
+        let botReply = "";
+        if (typeof data === "string") {
+          botReply = data;
+        } else if (data && typeof data === "object") {
+          // Extract response from common API field keys
+          botReply = data.response ||
+                     data.reply ||
+                     data.message ||
+                     data.answer ||
+                     data.text ||
+                     data.output ||
+                     (data.data && (data.data.response || data.data.reply || data.data.message)) ||
+                     "";
+        }
+
+        if (!botReply) {
+          botReply = "Response received from student services server.";
+        }
+
+        appendMessage("bot", botReply);
+
+        // Check if API response triggered an end_chat intent or end chat form
+        const isEndChatIntent = data && (data.intent === "end_chat" || data.isEndChat === true || data.form === "survey" || data.form === "end_chat");
+        if (isEndChatIntent) {
+          setTimeout(() => {
+            showEndChatForm("end_chat_intent");
+          }, 600);
+        } else if (data && data.form && Array.isArray(config.customForms)) {
+          const formToRender = config.customForms.find(f => f.name === data.form);
+          if (formToRender) renderCustomForm(formToRender);
+        }
+
+        // Suggestions or quick replies from API if provided
+        const suggestions = (data && (data.quickReplies || data.suggestions || data.options)) || config.quickReplies;
+        if (suggestions && suggestions.length > 0) {
+          showQuickReplies(suggestions);
         }
       } else {
-        appendMessage("bot", `I'm having trouble connecting right now (status ${response.status}). Please try again.`);
+        appendMessage("bot", `Notice: Student services API responded with status ${response.status}.`);
       }
     } catch (err) {
+      console.warn("[ISO Chatbot] Backend API call error, using simulated fallback.", err);
       removeTypingIndicator();
       fallbackSimulatedResponse(textLower);
     }
   }
 
   function fallbackSimulatedResponse(textLower) {
-    let reply = "Thank you for your message. How can I assist you with your questions today?";
-    if (textLower.includes("academic") || textLower.includes("course") || textLower.includes("student")) {
-      reply = "I specialize in academic support! You can ask about course registrations, campus resources, academic deadlines, or tutoring services.";
-    } else if (textLower.includes("tech") || textLower.includes("password") || textLower.includes("login")) {
-      reply = "For technology support, I can guide you through student portal access, multi-factor authentication, Wi-Fi connectivity, or account resets.";
+    let reply = "Thank you for reaching out to Student Services. How may I assist you with your academic or campus inquiries today?";
+
+    if (textLower.includes("transfer") || textLower.includes("agent") || textLower.includes("live") || textLower.includes("advisor") || textLower.includes("human")) {
+      const form = (config.customForms || []).find(f => f.name === "transferCall");
+      appendMessage("bot", "I can help escalate your inquiry to a specialized campus advisor. Please complete the form below:");
+      if (form) renderCustomForm(form);
+      return;
+    } else if (textLower.includes("end") || textLower.includes("bye") || textLower.includes("goodbye") || textLower.includes("exit") || textLower.includes("survey")) {
+      appendMessage("bot", "Thank you for contacting Student Services! Have a productive academic day. Goodbye! 👋");
+      setTimeout(() => {
+        showEndChatForm("end_chat_fallback");
+      }, 600);
+      return;
+    } else if (textLower.includes("admissions") || textLower.includes("enroll") || textLower.includes("apply") || textLower.includes("deadline")) {
+      reply = "For Admissions & Enrollment, I can assist you with application requirements, document deadlines, transfer credit evaluations, and campus tour bookings.";
+    } else if (textLower.includes("aid") || textLower.includes("fafsa") || textLower.includes("tuition") || textLower.includes("scholarship") || textLower.includes("bill")) {
+      reply = "For Financial Aid & Bursar queries, I can clarify FAFSA submission timelines, scholarship criteria, tuition payment options, and fee schedules.";
+    } else if (textLower.includes("academic") || textLower.includes("course") || textLower.includes("advising") || textLower.includes("class") || textLower.includes("major")) {
+      reply = "For Academic Advising, I can provide details regarding course prerequisite checks, degree pathway requirements, add/drop deadlines, and advisor scheduling.";
+    } else if (textLower.includes("tech") || textLower.includes("password") || textLower.includes("login") || textLower.includes("canvas") || textLower.includes("wifi")) {
+      reply = "For Campus IT Helpdesk, I can guide you through student portal authentication, LMS (Canvas/Blackboard) access, campus Wi-Fi configuration, and password resets.";
     }
+
     appendMessage("bot", reply);
     showQuickReplies(config.quickReplies);
+  }
+
+  function getQuickReplies() {
+    const ui = config.botUIConfigs || {};
+    if (Array.isArray(config.quickReplies) && config.quickReplies.length > 0) {
+      return config.quickReplies;
+    }
+    if (Array.isArray(ui.quickReplies) && ui.quickReplies.length > 0) {
+      return ui.quickReplies;
+    }
+    if (Array.isArray(ui.starterQuestions) && ui.starterQuestions.length > 0) {
+      return ui.starterQuestions;
+    }
+    return [
+      "Academic Advising & Registration",
+      "Financial Aid & FAFSA Guidance",
+      "Admissions & Enrollment Status",
+      "Campus IT & LMS Troubleshooting",
+      "Connect with Campus Advisor"
+    ];
   }
 
   function showQuickReplies(replies) {
     const container = widgetContainer.querySelector(".iso-quick-replies");
     if (!container) return;
-    let list = (replies && replies.length > 0) ? replies : config.quickReplies;
-    if (config.enableTicketing === false) {
-      list = list.filter(r => !/transfer|live agent|ticket|grievance/i.test(r));
-    }
+    const list = (replies && replies.length > 0) ? replies : getQuickReplies();
     if (!list || list.length === 0) {
       container.style.display = "none";
       return;
@@ -1828,6 +2934,7 @@
       });
       container.appendChild(btn);
     });
+
     container.style.display = "flex";
     scrollToBottom();
   }
@@ -1837,67 +2944,238 @@
     if (container) container.style.display = "none";
   }
 
+  // --------------------------------------------------------
+  // 13. WELCOME MESSAGES & HISTORY PERSISTENCE
+  // --------------------------------------------------------
+  function getHistoryKey() {
+    return `iso_history_${config.botId}`;
+  }
+
   function saveChatHistory() {
     if (!config.persistHistory) return;
-    try { localStorage.setItem(`iso_history_${config.botId}`, JSON.stringify(chatHistory)); } catch (e) {}
+    try {
+      localStorage.setItem(getHistoryKey(), JSON.stringify(chatHistory));
+    } catch (e) {
+      console.warn("[ISO Chatbot] Error saving history to localStorage", e);
+    }
   }
 
   function loadChatHistory() {
-    renderWelcomeMessages();
+    // Purge any old cache from localStorage that contains obsolete messages or no user messages
+    try {
+      const oldHistory = localStorage.getItem(getHistoryKey());
+      if (oldHistory && (oldHistory.includes("Atom") || !oldHistory.includes('"sender":"user"'))) {
+        localStorage.removeItem(getHistoryKey());
+      }
+    } catch (e) {}
+
+    if (config.persistHistory) {
+      const historyString = localStorage.getItem(getHistoryKey());
+      if (historyString) {
+        try {
+          const parsed = JSON.parse(historyString);
+          if (Array.isArray(parsed) && parsed.some(m => m.sender === "user")) {
+            chatHistory = parsed;
+            chatHistory.forEach(msg => {
+              renderMessage(msg.sender, msg.text, msg.isHtml, msg.timestamp, msg.id, msg.options || {});
+            });
+            showQuickReplies(config.quickReplies);
+            return;
+          }
+        } catch (e) {
+          console.warn("[ISO Chatbot] Error parsing saved chat history", e);
+        }
+      }
+    }
+
+    // Only render immediately if isChatOpened is configured as true;
+    // Otherwise, welcome message renders as soon as the user opens the bot!
+    if (config.botUIConfigs && config.botUIConfigs.isChatOpened) {
+      renderWelcomeMessages();
+    }
+  }
+
+  function getWelcomeMessages() {
+    const ui = config.botUIConfigs || {};
+    // Priority:
+    // 1. config.greetingMessage (from MongoDB document root)
+    // 2. ui.greetingMessage
+    // 3. ui.welcomeMessage
+    // 4. config.welcomeMessage
+    const candidate = config.greetingMessage ||
+                      (ui.greetingMessage && ui.greetingMessage.length ? ui.greetingMessage : null) ||
+                      ui.welcomeMessage ||
+                      config.welcomeMessage;
+
+    if (!candidate) {
+      return ["Hi! How can I assist you today?"];
+    }
+
+    if (Array.isArray(candidate)) {
+      const filtered = candidate.filter(msg => typeof msg === "string" && msg.trim() !== "");
+      return filtered.length > 0 ? filtered : ["Hi! How can I assist you today?"];
+    }
+
+    if (typeof candidate === "string" && candidate.trim() !== "") {
+      return [candidate.trim()];
+    }
+
+    return ["Hi! How can I assist you today?"];
   }
 
   function renderWelcomeMessages() {
     chatHistory = [];
     if (chatBody) chatBody.innerHTML = "";
-    const msgs = Array.isArray(config.greetingMessage) ? config.greetingMessage : [config.greetingMessage || "Hi! How can I assist you today?"];
-    msgs.forEach(m => appendMessage("bot", m, false, { isWelcome: true }));
+
+    const messages = getWelcomeMessages();
+    messages.forEach(msg => {
+      appendMessage("bot", msg, false, { isWelcome: true, showFeedback: false });
+    });
+
     showQuickReplies(config.quickReplies);
   }
 
   function clearChatHistory() {
+    localStorage.removeItem(getHistoryKey());
     renderWelcomeMessages();
   }
 
+  function updateDOMWithNewConfig() {
+    if (!widgetContainer) return;
+    const ui = config.botUIConfigs || {};
+
+    // 0. Update CSS custom properties
+    injectStyles();
+
+    // 1. Header title & status text
+    const nameEl = widgetContainer.querySelector(".iso-bot-name");
+    if (nameEl && (ui.botHeaderText || config.botName)) {
+      nameEl.textContent = ui.botHeaderText || config.botName;
+    }
+    const statusEl = widgetContainer.querySelector(".iso-bot-status");
+    if (statusEl) {
+      statusEl.textContent = ui.botStatusText || (config.botActive !== false ? "Online" : "Offline");
+    }
+
+    // 2. Header logo
+    const logoEl = widgetContainer.querySelector(".iso-header-logo");
+    const startImgUrl = ui.botChatStartImage || config.botChatStartImage || ui.logoUrl || config.botLogo;
+    if (logoEl && startImgUrl) {
+      logoEl.innerHTML = renderLogoHtml(startImgUrl, ui.botHeaderText || config.botName);
+    }
+
+    // 3. Toggle button launcher image
+    const startImg = widgetContainer.querySelector(".iso-start-img");
+    if (startImg && ui.botChatStartImage) {
+      startImg.src = ui.botChatStartImage;
+    }
+
+    // 4. Input placeholder
+    if (textInput && (ui.DefaultEmptyMessage || config.placeholderText)) {
+      textInput.placeholder = ui.DefaultEmptyMessage || config.placeholderText;
+    }
+
+    // 5. If chat has only initial greetings or is empty, refresh welcome message from botUIConfigs
+    const hasUserMessages = chatHistory.some(m => m.sender === "user");
+    if (!hasUserMessages && isChatOpen) {
+      renderWelcomeMessages();
+    }
+
+    // 6. Help notification popup
+    if (helpNotificationEl && ui.helpNotificationRenderMsg) {
+      const contentEl = helpNotificationEl.querySelector(".iso-callout-content");
+      if (contentEl) contentEl.textContent = ui.helpNotificationRenderMsg;
+      initHelpNotification();
+    }
+  }
+
   // --------------------------------------------------------
-  // 13. GLOBAL API EXPOSURE
+  // 14. INITIALIZATION (Runs API call first, then mounts UI)
   // --------------------------------------------------------
-  window.IsoChat = {
+  async function init() {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
+      return;
+    }
+
+    // 1. Call API inside chatbot.js first
+    await fetchConfigFromAPI();
+
+    // 2. Inject styles with unique "iso-" classes
+    injectStyles();
+
+    // 3. Build unique "iso-" DOM elements
+    createChatbotDOM();
+
+    // 4. Load history or await bot opening
+    loadChatHistory();
+  }
+
+  init();
+
+  // --------------------------------------------------------
+  // 15. PUBLIC GLOBAL CONTROL INTERFACE
+  // --------------------------------------------------------
+  const publicApi = {
     open: () => openChat(),
     close: () => closeChat(),
     toggle: () => handleToggleClick(),
     clearHistory: () => clearChatHistory(),
+    showForm: (formName) => {
+      const form = (config.customForms || []).find(f => f.name === formName);
+      if (form) renderCustomForm(form);
+    },
     downloadTranscript: () => downloadTranscript(),
     copyCode: (btn) => {
-      const block = btn.closest(".iso-code-block");
-      const code = block ? block.querySelector("code").innerText : "";
-      navigator.clipboard.writeText(code).then(() => {
-        btn.textContent = "Copied! ✓";
-        setTimeout(() => { btn.textContent = "Copy Code"; }, 2000);
-      });
-    }
+      const pre = btn.closest(".iso-code-block");
+      const code = pre ? pre.querySelector("code").innerText : "";
+      if (code) {
+        navigator.clipboard.writeText(code).then(() => {
+          const original = btn.innerText;
+          btn.innerText = "Copied!";
+          setTimeout(() => { btn.innerText = original; }, 1500);
+        });
+      }
+    },
+    readAloud: (text) => readAloudText(text),
+    loadFromApi: async (apiUrl) => {
+      if (!apiUrl) return;
+      try {
+        const res = await fetch(apiUrl);
+        if (res.ok) {
+          const data = await res.json();
+          applyLoadedConfig(data);
+          normalizeConfigs(config);
+          injectStyles();
+          updateDOMWithNewConfig();
+          return config;
+        }
+      } catch (err) {
+        console.error("[ISO Chatbot] Failed to fetch config from API", err);
+      }
+    },
+    updateUIConfigs: (newUIConfigs) => {
+      config.botUIConfigs = deepMerge(config.botUIConfigs, newUIConfigs);
+      normalizeConfigs(config);
+      injectStyles();
+      updateDOMWithNewConfig();
+    },
+    updateConfig: (newConfig) => {
+      applyLoadedConfig(newConfig);
+      normalizeConfigs(config);
+      injectStyles();
+      updateDOMWithNewConfig();
+    },
+    sendMessage: (text) => {
+      if (!isChatOpen) openChat();
+      appendMessage("user", text);
+      getBotResponse(text);
+    },
+    getConfig: () => JSON.parse(JSON.stringify(config))
   };
 
-  // --------------------------------------------------------
-  // 14. INITIALIZE CHATBOT
-  // --------------------------------------------------------
-  async function init() {
-    injectStyles();
-    createChatbotDOM();
-    await fetchBotConfiguration();
-    injectStyles(); // re-inject after fetched configs
-    if (widgetContainer) {
-      const headerTitle = config.botUIConfigs?.botHeaderText || config.botName || "ISO AI";
-      const botNameEl = widgetContainer.querySelector(".iso-bot-name");
-      if (botNameEl) botNameEl.textContent = headerTitle;
-    }
-    if (chatBody && (chatHistory.length === 0 || chatHistory.every(m => m.options?.isWelcome))) {
-      renderWelcomeMessages();
-    }
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  // Primary API namespace
+  window.IsoChat = publicApi;
+  // Backward compatibility alias
+  window.AuraChat = publicApi;
 })();
