@@ -1025,7 +1025,7 @@ export default function ChatClientModal({
                           style={{ color: avatarIconColor }}
                         >
                           {logoUrl ? (
-                            <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                            <img src={logoUrl} alt="Logo" referrerPolicy="no-referrer" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                           ) : (
                             <BotIcon size={22} style={{ stroke: headerIconColor }} />
                           )}
@@ -1079,6 +1079,7 @@ export default function ChatClientModal({
                         <img 
                           src={startImage} 
                           alt="Start Graphic" 
+                          referrerPolicy="no-referrer"
                           className="max-h-[100px] max-w-[200px] object-contain rounded-lg drop-shadow-sm" 
                           onError={(e) => { e.currentTarget.style.display = 'none'; }}
                         />
@@ -1092,7 +1093,7 @@ export default function ChatClientModal({
                           className="w-[28px] h-[28px] rounded-full flex items-center justify-center shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.12)] overflow-hidden"
                           style={{ backgroundColor: themeColor, color: avatarIconColor }}
                         >
-                          {logoUrl ? <img src={logoUrl} alt="Avatar" className="w-full h-full object-cover" /> : <BotIcon size={16} />}
+                          {logoUrl ? <img src={logoUrl} alt="Avatar" referrerPolicy="no-referrer" className="w-full h-full object-cover" /> : <BotIcon size={16} />}
                         </div>
                         <div className="flex flex-col">
                           <div 
@@ -1130,7 +1131,7 @@ export default function ChatClientModal({
                             className="w-[28px] h-[28px] rounded-full flex items-center justify-center shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.12)] overflow-hidden"
                             style={{ backgroundColor: themeColor, color: avatarIconColor }}
                           >
-                            {logoUrl ? <img src={logoUrl} alt="Avatar" className="w-full h-full object-cover" /> : <BotIcon size={16} />}
+                            {logoUrl ? <img src={logoUrl} alt="Avatar" referrerPolicy="no-referrer" className="w-full h-full object-cover" /> : <BotIcon size={16} />}
                           </div>
                         )}
                         <div className="flex flex-col">
@@ -1264,7 +1265,7 @@ export default function ChatClientModal({
                       title={ui.chatIconTitleText || "Chat with Us"}
                     >
                       {startImage ? (
-                        <img src={startImage} alt="Launcher" className="w-full h-full rounded-full object-cover" />
+                        <img src={startImage} alt="Launcher" referrerPolicy="no-referrer" className="w-full h-full rounded-full object-cover" />
                       ) : (
                         <BotIcon size={32} style={{ stroke: avatarIconColor }} />
                       )}

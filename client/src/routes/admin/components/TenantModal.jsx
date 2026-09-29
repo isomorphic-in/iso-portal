@@ -335,7 +335,6 @@ export default function TenantModal({
                       <img 
                         src={cfg.logoBigUrl} 
                         alt="Logo Preview" 
-                        crossOrigin="anonymous"
                         referrerPolicy="no-referrer"
                         className="max-h-full max-w-full object-contain"
                         onError={(e) => { e.target.style.display = 'none'; }}
@@ -380,6 +379,7 @@ export default function TenantModal({
                       <img 
                         src={cfg.backgroudImageUrl} 
                         alt="Background Preview" 
+                        referrerPolicy="no-referrer"
                         className="w-full h-full object-cover rounded"
                         onError={(e) => { e.target.style.display = 'none'; }}
                       />
@@ -398,7 +398,7 @@ export default function TenantModal({
                   {cfg.logoSmallUrl && (
                     <div className="h-8 flex items-center gap-2 mt-1">
                       <span className="text-[10px] text-iso-textMuted font-mono">Preview:</span>
-                      <img src={cfg.logoSmallUrl} alt="Small logo preview" className="h-6 object-contain" />
+                      <img src={cfg.logoSmallUrl} alt="Small logo preview" referrerPolicy="no-referrer" className="h-6 object-contain" />
                     </div>
                   )}
                 </div>
@@ -409,7 +409,7 @@ export default function TenantModal({
                   {cfg.faviconUrl && (
                     <div className="h-8 flex items-center gap-2 mt-1">
                       <span className="text-[10px] text-iso-textMuted font-mono">Preview:</span>
-                      <img src={cfg.faviconUrl} alt="Favicon preview" className="w-4 h-4 object-contain" />
+                      <img src={cfg.faviconUrl} alt="Favicon preview" referrerPolicy="no-referrer" className="w-4 h-4 object-contain" />
                     </div>
                   )}
                 </div>
@@ -531,6 +531,7 @@ export default function TenantModal({
                         <img 
                           src={cfg.logoBigUrl} 
                           alt="Logo" 
+                          referrerPolicy="no-referrer"
                           className="max-h-10 max-w-[160px] object-contain mb-1"
                           onError={(e) => { e.target.style.display = 'none'; }} 
                         />
