@@ -5,6 +5,7 @@ import {
   Copy, RefreshCw, Plus, X, Eye, CheckCircle2, 
   Sparkles, Layers, ArrowUpRight
 } from 'lucide-react';
+import { apiUrl } from '../../config/api';
 
 const DEFAULT_UI_CONFIGS = {
   botThemeColor: '#00306D',
@@ -237,9 +238,13 @@ export default function Overview({ selectedTenant, selectedBot, setSelectedBot, 
         }
       }
 
-      const res = await fetch(`/api/admin/bots/${selectedBot._id}`, {
+      const sessionId = localStorage.getItem('iso_session_id') || '';
+      const res = await fetch(apiUrl(`/api/admin/bots/${selectedBot._id}`), {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-session-id': sessionId
+        },
         body: JSON.stringify(payload)
       });
       const data = await res.json();
@@ -265,7 +270,11 @@ export default function Overview({ selectedTenant, selectedBot, setSelectedBot, 
     if (!confirm(`Duplicate chatbot "${selectedBot.name}"?`)) return;
     setDuplicateLoading(true);
     try {
-      const res = await fetch(`/api/admin/bots/${selectedBot._id}/duplicate`, { method: 'POST' });
+      const sessionId = localStorage.getItem('iso_session_id') || '';
+      const res = await fetch(apiUrl(`/api/admin/bots/${selectedBot._id}/duplicate`), { 
+        method: 'POST',
+        headers: { 'x-session-id': sessionId }
+      });
       const data = await res.json();
       if (res.ok) {
         showToast(`Chatbot cloned successfully as "${data.name}".`);
@@ -286,7 +295,11 @@ export default function Overview({ selectedTenant, selectedBot, setSelectedBot, 
   const handleDeleteBot = async () => {
     if (!confirm(`Warning: Permanently delete chatbot "${selectedBot.name}"? This action cannot be undone.`)) return;
     try {
-      const res = await fetch(`/api/admin/bots/${selectedBot._id}`, { method: 'DELETE' });
+      const sessionId = localStorage.getItem('iso_session_id') || '';
+      const res = await fetch(apiUrl(`/api/admin/bots/${selectedBot._id}`), { 
+        method: 'DELETE',
+        headers: { 'x-session-id': sessionId }
+      });
       if (res.ok) {
         showToast('Chatbot removed successfully.');
         if (fetchBots && selectedTenant) fetchBots(selectedTenant._id);
@@ -317,9 +330,13 @@ export default function Overview({ selectedTenant, selectedBot, setSelectedBot, 
     setChatLoading(true);
 
     try {
-      const res = await fetch(`/api/client/bots/${selectedBot._id}/chat`, {
+      const sessionId = localStorage.getItem('iso_session_id') || '';
+      const res = await fetch(apiUrl(`/api/client/bots/${selectedBot._id}/chat`), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-session-id': sessionId
+        },
         body: JSON.stringify({ message: userMsg.content })
       });
       const data = await res.json();

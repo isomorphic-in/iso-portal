@@ -500,33 +500,37 @@ export default function Grievances({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-iso-bg overflow-hidden">
+    <div className="w-full flex flex-col gap-6">
       
       {/* Top Header */}
-      <div className="p-4 border-b border-iso-border bg-iso-cardBg shrink-0 flex items-center justify-between">
+      <div className="border-b border-iso-border pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <Ticket size={20} className="text-iso-accent" />
-            <h1 className="text-lg font-bold font-serif text-iso-primary">AI Grievance &amp; Ticket System</h1>
+            <h1 className="text-3xl font-serif tracking-tight text-iso-primary mb-1">
+              AI Grievance &amp; Ticket System
+            </h1>
+            <span className="px-2 py-0.5 bg-iso-accentLight text-iso-primary border border-iso-accent/30 rounded-sm text-[10px] font-mono font-bold uppercase tracking-wider mb-1">
+              SLA Live
+            </span>
           </div>
-          <p className="text-xs font-mono text-iso-textMuted mt-0.5">
-            AI-powered issue ingestion, intelligent SLA routing, and staff resolution workflow.
+          <p className="text-xs text-iso-textMuted">
+            AI-powered issue ingestion, intelligent SLA routing, student case history, and staff resolution workflow.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => { fetchTickets(); fetchStats(); }}
             disabled={isLoading}
-            className="px-3 py-1.5 bg-iso-bg hover:bg-iso-bgSecondary border border-iso-border rounded text-xs font-bold text-iso-primary flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="px-3 py-1.5 bg-iso-bgSecondary hover:bg-iso-bg border border-iso-border text-iso-primary rounded-sm text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer disabled:opacity-50"
           >
-            <RefreshCw size={13} className={isLoading ? "animate-spin" : ""} />
+            <RefreshCw size={13} className={isLoading ? "animate-spin text-iso-accent" : ""} />
             <span>Refresh</span>
           </button>
 
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-3.5 py-1.5 bg-iso-primary hover:bg-iso-primary/90 text-white rounded text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
+            className="px-4 py-2 bg-iso-primary hover:bg-iso-primaryLight text-white text-xs font-bold rounded-sm border border-iso-primary flex items-center gap-1.5 transition-colors shrink-0 shadow-sm cursor-pointer"
           >
             <Plus size={14} />
             <span>Create Ticket</span>
@@ -535,47 +539,56 @@ export default function Grievances({
       </div>
 
       {/* Metric Cards Banner */}
-      <div className="p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 border-b border-iso-border bg-iso-bgSecondary/20 shrink-0">
-        <div className="bg-iso-cardBg border border-iso-border p-3 rounded shadow-2xs flex flex-col">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="bg-iso-cardBg border border-iso-border p-4 rounded-sm shadow-xs flex flex-col justify-between">
           <span className="text-[10px] font-mono uppercase font-bold text-iso-textMuted tracking-wider">Total Tickets</span>
-          <span className="text-xl font-bold font-mono text-iso-primary mt-1">{stats.total || 0}</span>
+          <span className="text-2xl font-bold font-mono text-iso-primary mt-2">{stats.total || 0}</span>
         </div>
 
-        <div className="bg-iso-cardBg border border-amber-200 p-3 rounded shadow-2xs flex flex-col">
+        <div className="bg-iso-cardBg border border-amber-200/80 p-4 rounded-sm shadow-xs flex flex-col justify-between">
           <span className="text-[10px] font-mono uppercase font-bold text-amber-700 tracking-wider">Open (Unclaimed)</span>
-          <span className="text-xl font-bold font-mono text-amber-700 mt-1">{stats.open || 0}</span>
+          <span className="text-2xl font-bold font-mono text-amber-700 mt-2">{stats.open || 0}</span>
         </div>
 
-        <div className="bg-iso-cardBg border border-blue-200 p-3 rounded shadow-2xs flex flex-col">
+        <div className="bg-iso-cardBg border border-blue-200/80 p-4 rounded-sm shadow-xs flex flex-col justify-between">
           <span className="text-[10px] font-mono uppercase font-bold text-blue-700 tracking-wider">In Progress</span>
-          <span className="text-xl font-bold font-mono text-blue-700 mt-1">{stats.in_progress || 0}</span>
+          <span className="text-2xl font-bold font-mono text-blue-700 mt-2">{stats.in_progress || 0}</span>
         </div>
 
-        <div className="bg-iso-cardBg border border-emerald-200 p-3 rounded shadow-2xs flex flex-col">
+        <div className="bg-iso-cardBg border border-emerald-200/80 p-4 rounded-sm shadow-xs flex flex-col justify-between">
           <span className="text-[10px] font-mono uppercase font-bold text-emerald-700 tracking-wider">Resolved</span>
-          <span className="text-xl font-bold font-mono text-emerald-700 mt-1">{stats.resolved || 0}</span>
+          <span className="text-2xl font-bold font-mono text-emerald-700 mt-2">{stats.resolved || 0}</span>
         </div>
 
-        <div className="bg-iso-cardBg border border-rose-200 p-3 rounded shadow-2xs flex flex-col">
+        <div className="bg-iso-cardBg border border-rose-200/80 p-4 rounded-sm shadow-xs flex flex-col justify-between">
           <span className="text-[10px] font-mono uppercase font-bold text-rose-700 tracking-wider flex items-center gap-1">
             <AlertTriangle size={12} className="animate-pulse" /> Overdue SLA
           </span>
-          <span className="text-xl font-bold font-mono text-rose-700 mt-1">{stats.overdue || 0}</span>
+          <span className="text-2xl font-bold font-mono text-rose-700 mt-2">{stats.overdue || 0}</span>
         </div>
       </div>
 
       {/* Toolbar / Filters */}
-      <div className="p-3 border-b border-iso-border bg-iso-cardBg flex flex-wrap items-center justify-between gap-3 shrink-0">
+      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
         {/* Search */}
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-iso-textMuted" />
+        <div className="relative flex-1 max-w-md">
+          <Search size={13} className="absolute left-2.5 top-2.5 text-iso-textMuted" />
           <input
             type="text"
             placeholder="Search ticket ID, student, roll no, issue..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 text-xs bg-iso-bg border border-iso-border rounded text-iso-primary placeholder-iso-textMuted focus:outline-hidden focus:border-iso-accent"
+            className="w-full bg-iso-bg border border-iso-border focus:border-iso-accent rounded-sm pl-8 pr-7 py-1.5 text-xs text-iso-text outline-none"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2 top-2 text-iso-textMuted hover:text-iso-text cursor-pointer"
+            >
+              <X size={12} />
+            </button>
+          )}
         </div>
 
         {/* Dropdown Filters */}
@@ -584,7 +597,7 @@ export default function Grievances({
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="px-2.5 py-1.5 text-xs bg-iso-bg border border-iso-border rounded text-iso-primary focus:outline-hidden"
+            className="px-2.5 py-1.5 text-xs bg-iso-bg border border-iso-border rounded-sm text-iso-text outline-none focus:border-iso-accent cursor-pointer"
           >
             <option value="all">All Statuses</option>
             <option value="open">Open</option>
@@ -598,7 +611,7 @@ export default function Grievances({
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-2.5 py-1.5 text-xs bg-iso-bg border border-iso-border rounded text-iso-primary focus:outline-hidden"
+            className="px-2.5 py-1.5 text-xs bg-iso-bg border border-iso-border rounded-sm text-iso-text outline-none focus:border-iso-accent cursor-pointer"
           >
             <option value="all">All Categories</option>
             {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -608,7 +621,7 @@ export default function Grievances({
           <select
             value={selectedPriority}
             onChange={(e) => setSelectedPriority(e.target.value)}
-            className="px-2.5 py-1.5 text-xs bg-iso-bg border border-iso-border rounded text-iso-primary focus:outline-hidden"
+            className="px-2.5 py-1.5 text-xs bg-iso-bg border border-iso-border rounded-sm text-iso-text outline-none focus:border-iso-accent cursor-pointer"
           >
             <option value="all">All Priorities</option>
             <option value="urgent">Urgent</option>
@@ -621,7 +634,7 @@ export default function Grievances({
           <select
             value={selectedAssignee}
             onChange={(e) => setSelectedAssignee(e.target.value)}
-            className="px-2.5 py-1.5 text-xs bg-iso-bg border border-iso-border rounded text-iso-primary focus:outline-hidden font-semibold"
+            className="px-2.5 py-1.5 text-xs bg-iso-bg border border-iso-border rounded-sm text-iso-text font-semibold outline-none focus:border-iso-accent cursor-pointer"
           >
             <option value="all">All Assignees</option>
             <option value="me">🙋 Assigned to Me</option>
@@ -631,14 +644,14 @@ export default function Grievances({
       </div>
 
       {/* Main Tickets Table Area */}
-      <div className="flex-1 overflow-auto p-4">
+      <div className="bg-iso-cardBg border border-iso-border rounded-sm shadow-sm overflow-hidden flex flex-col">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center h-64 gap-2 text-iso-textMuted font-mono text-xs">
             <Loader2 size={24} className="animate-spin text-iso-accent" />
             <span>Loading tickets...</span>
           </div>
         ) : tickets.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 gap-3 text-iso-textMuted border border-dashed border-iso-border rounded p-8 bg-iso-cardBg/50">
+          <div className="flex flex-col items-center justify-center h-64 gap-3 text-iso-textMuted border border-dashed border-iso-border rounded-sm p-8 m-4 bg-iso-cardBg/50">
             <Ticket size={36} className="text-iso-textMuted/40" />
             <div className="text-center">
               <p className="text-sm font-bold font-serif text-iso-primary">No grievance tickets found</p>
@@ -648,17 +661,17 @@ export default function Grievances({
             </div>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="px-3 py-1.5 bg-iso-primary text-white text-xs font-bold rounded flex items-center gap-1.5 hover:bg-iso-primary/90 cursor-pointer"
+              className="px-3 py-1.5 bg-iso-primary text-white text-xs font-bold rounded-sm flex items-center gap-1.5 hover:bg-iso-primaryLight cursor-pointer shadow-sm"
             >
               <Plus size={13} />
               <span>Create First Ticket</span>
             </button>
           </div>
         ) : (
-          <div className="border border-iso-border rounded bg-iso-cardBg overflow-x-auto shadow-2xs w-full">
+          <div className="overflow-x-auto w-full">
             <table className="w-full text-left border-collapse text-xs table-fixed min-w-[760px]">
               <thead>
-                <tr className="bg-iso-bgSecondary border-b border-iso-border text-[11px] font-mono text-iso-textMuted uppercase tracking-wider">
+                <tr className="bg-iso-bgSecondary/30 border-b border-iso-border text-[10px] font-mono text-iso-textMuted uppercase tracking-wider">
                   <th className="py-2.5 px-3 w-[20%]">Ticket &amp; Student</th>
                   <th className="py-2.5 px-3 w-[32%]">Issue &amp; Category</th>
                   <th className="py-2.5 px-3 w-[18%]">Status &amp; SLA</th>
@@ -722,7 +735,7 @@ export default function Grievances({
                       <td className="py-2.5 px-3 overflow-hidden">
                         {t.assignedTo?.fullName || t.assignedTo?.username ? (
                           <div className="flex items-center gap-1.5 min-w-0">
-                            <div className="w-5 h-5 rounded-full bg-iso-accent/20 text-iso-primary font-bold text-[9px] flex items-center justify-center shrink-0">
+                            <div className="w-5 h-5 rounded-full bg-iso-accent/20 text-iso-primary font-bold text-[9px] flex items-center justify-center shrink-0 font-mono">
                               {(t.assignedTo.fullName || t.assignedTo.username)[0].toUpperCase()}
                             </div>
                             <span className="font-medium text-iso-primary truncate text-[11px]" title={t.assignedTo.fullName || t.assignedTo.username}>
@@ -784,20 +797,15 @@ export default function Grievances({
             </table>
           </div>
         )}
-      </div>
 
-      {/* Pagination Footer */}
-      {totalPages > 1 && (
-        <div className="p-3 border-t border-iso-border bg-iso-cardBg shrink-0">
-          <TablePagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-            totalItems={totalCount}
-            pageSize={pageSize}
-          />
-        </div>
-      )}
+        {/* Pagination Footer */}
+        <TablePagination
+          currentPage={currentPage}
+          totalItems={totalCount}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+        />
+      </div>
 
       {/* ========================================================================= */}
       {/* MODAL: TICKET DETAILS, FULL CHAT TRANSCRIPT & STAFF RESOLUTION */}

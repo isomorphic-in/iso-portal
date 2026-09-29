@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import ConfirmModal from "../../../components/ConfirmModal";
 import TablePagination from "../../../components/TablePagination";
+import { apiUrl } from "../../../config/api";
 
 export default function NavigationMenusTab({ showToast }) {
   const [menus, setMenus] = useState([]);
@@ -146,9 +147,13 @@ export default function NavigationMenusTab({ showToast }) {
   const handleToggleActive = async (m) => {
     try {
       const nextActive = !m.active;
-      const res = await fetch(`/api/admin/menus/${m._id || m.menuId}`, {
+      const sessionId = localStorage.getItem("iso_session_id") || "";
+      const res = await fetch(apiUrl(`/api/admin/menus/${m._id || m.menuId}`), {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-session-id": sessionId
+        },
         body: JSON.stringify({ active: nextActive })
       });
       if (res.ok) {
@@ -169,11 +174,15 @@ export default function NavigationMenusTab({ showToast }) {
 
     setSaving(true);
     try {
+      const sessionId = localStorage.getItem("iso_session_id") || "";
       const method = editingMenu ? "PUT" : "POST";
-      const url = editingMenu ? `/api/admin/menus/${editingMenu._id || editingMenu.menuId}` : "/api/admin/menus";
-      const res = await fetch(url, {
+      const endpoint = editingMenu ? `/api/admin/menus/${editingMenu._id || editingMenu.menuId}` : "/api/admin/menus";
+      const res = await fetch(apiUrl(endpoint), {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-session-id": sessionId
+        },
         body: JSON.stringify(formData)
       });
       const data = await res.json();
@@ -205,7 +214,11 @@ export default function NavigationMenusTab({ showToast }) {
   const performDelete = async (id) => {
     setConfirmModal(prev => ({ ...prev, isLoading: true }));
     try {
-      const res = await fetch(`/api/admin/menus/${id}`, { method: "DELETE" });
+      const sessionId = localStorage.getItem("iso_session_id") || "";
+      const res = await fetch(apiUrl(`/api/admin/menus/${id}`), { 
+        method: "DELETE",
+        headers: { "x-session-id": sessionId }
+      });
       if (res.ok) {
         showToast("Menu deleted successfully.");
         setConfirmModal(prev => ({ ...prev, isOpen: false, isLoading: false }));

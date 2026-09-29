@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { X, Sliders, MessageSquare, Code, Sparkles, Save, Loader2 } from "lucide-react";
+import { apiUrl } from "../../../config/api";
 
 export default function GenAISettingsModal({
   isOpen,
@@ -37,7 +38,10 @@ export default function GenAISettingsModal({
   const loadSettings = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/genai-settings?tenantId=${encodeURIComponent(targetTenantId)}&tenantDbName=${encodeURIComponent(targetDb)}&botId=${encodeURIComponent(targetBotId)}`);
+      const sessionId = localStorage.getItem("iso_session_id") || "";
+      const res = await fetch(apiUrl(`/api/admin/genai-settings?tenantId=${encodeURIComponent(targetTenantId)}&tenantDbName=${encodeURIComponent(targetDb)}&botId=${encodeURIComponent(targetBotId)}`), {
+        headers: { "x-session-id": sessionId }
+      });
       const data = await res.json();
       if (res.ok) {
         setFormData({
@@ -92,9 +96,13 @@ export default function GenAISettingsModal({
 
     setSaving(true);
     try {
-      const res = await fetch(`/api/admin/genai-settings?tenantId=${encodeURIComponent(targetTenantId)}&tenantDbName=${encodeURIComponent(targetDb)}&botId=${encodeURIComponent(targetBotId)}`, {
+      const sessionId = localStorage.getItem("iso_session_id") || "";
+      const res = await fetch(apiUrl(`/api/admin/genai-settings?tenantId=${encodeURIComponent(targetTenantId)}&tenantDbName=${encodeURIComponent(targetDb)}&botId=${encodeURIComponent(targetBotId)}`), {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-session-id": sessionId
+        },
         body: JSON.stringify(payload)
       });
       if (res.ok) {

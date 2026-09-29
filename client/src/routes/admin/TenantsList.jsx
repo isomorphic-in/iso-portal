@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { 
   Building2, Bot as BotIcon, Users, 
   Plus, Trash2, Edit3, ArrowLeft,
-  Sparkles, Loader2, Database,
+  Sparkles, Loader2, Database, Ticket,
   Search, ArrowUpDown, ArrowUp, ArrowDown, Palette, Globe, Clock, X
 } from "lucide-react";
 
@@ -12,6 +12,7 @@ import GenAISettingsModal from "./components/GenAISettingsModal";
 import TenantUsersModal from "./components/TenantUsersModal";
 import ConfirmModal from "../../components/ConfirmModal";
 import TablePagination from "../../components/TablePagination";
+import { apiUrl } from "../../config/api";
 
 export default function TenantsList({
   tenants,
@@ -77,9 +78,12 @@ export default function TenantsList({
   const fetchTenantBots = async () => {
     setIsBotsLoading(true);
     try {
+      const sessionId = localStorage.getItem("iso_session_id") || "";
       const targetId = activeTenant._id || activeTenant.tenantId || activeTenant.code;
       const targetDb = activeTenant.tenantDbName || (activeTenant.tenantId ? `iso_${activeTenant.tenantId}` : "");
-      const res = await fetch(`/api/admin/bots?tenantId=${encodeURIComponent(targetId)}&tenantDbName=${encodeURIComponent(targetDb)}`);
+      const res = await fetch(apiUrl(`/api/admin/bots?tenantId=${encodeURIComponent(targetId)}&tenantDbName=${encodeURIComponent(targetDb)}`), {
+        headers: { "x-session-id": sessionId }
+      });
       const data = await res.json();
       setTenantBots(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -204,6 +208,10 @@ export default function TenantsList({
         valA = a.status === "active" || a.botActive !== false ? 1 : 0;
         valB = b.status === "active" || b.botActive !== false ? 1 : 0;
         return botSortAsc ? valA - valB : valB - valA;
+      } else if (botSortField === "enableTicketing") {
+        valA = a.enableTicketing !== false ? 1 : 0;
+        valB = b.enableTicketing !== false ? 1 : 0;
+        return botSortAsc ? valA - valB : valB - valA;
       } else if (botSortField === "createdAt") {
         valA = a.createdAt ? new Date(a.createdAt).getTime() : (a.updatedSince ? new Date(a.updatedSince).getTime() : 0);
         valB = b.createdAt ? new Date(b.createdAt).getTime() : (b.updatedSince ? new Date(b.updatedSince).getTime() : 0);
@@ -266,7 +274,11 @@ export default function TenantsList({
   const performDeleteTenant = async (tenantId) => {
     setConfirmModal(prev => ({ ...prev, isLoading: true }));
     try {
-      const res = await fetch(`/api/admin/tenants/${tenantId}`, { method: "DELETE" });
+      const sessionId = localStorage.getItem("iso_session_id") || "";
+      const res = await fetch(apiUrl(`/api/admin/tenants/${tenantId}`), { 
+        method: "DELETE",
+        headers: { "x-session-id": sessionId }
+      });
       if (res.ok) {
         showToast("Tenant organization deleted successfully.");
         setConfirmModal(prev => ({ ...prev, isOpen: false, isLoading: false }));
@@ -301,11 +313,15 @@ export default function TenantsList({
     const nextActive = bot.status !== "active" && bot.botActive === false;
     const targetId = activeTenant?._id || bot.tenantId;
     const targetDb = activeTenant?.tenantDbName || bot.tenantDbName || "";
+    const sessionId = localStorage.getItem("iso_session_id") || "";
     setTogglingBotId(bot._id);
     try {
-      const res = await fetch(`/api/admin/bots/${bot._id}?tenantId=${encodeURIComponent(targetId)}&tenantDbName=${encodeURIComponent(targetDb)}`, {
+      const res = await fetch(apiUrl(`/api/admin/bots/${bot._id}?tenantId=${encodeURIComponent(targetId)}&tenantDbName=${encodeURIComponent(targetDb)}`), {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-session-id": sessionId
+        },
         body: JSON.stringify({
           status: nextActive ? "active" : "inactive",
           botActive: nextActive
@@ -317,6 +333,41 @@ export default function TenantsList({
       }
     } catch (err) {
       showToast("Failed to update bot status.", "error");
+    } finally {
+      setTogglingBotId(null);
+    }
+  };
+
+  const handleToggleBotTicketing = async (bot) => {
+    const isCurrentlyOn = bot.enableTicketing !== false && (bot.botUIConfigs?.enableTicketing !== false);
+    const nextTicketing = !isCurrentlyOn;
+    const targetId = activeTenant?._id || bot.tenantId;
+    const targetDb = activeTenant?.tenantDbName || bot.tenantDbName || "";
+    const sessionId = localStorage.getItem("iso_session_id") || "";
+    setTogglingBotId(bot._id);
+    try {
+      const res = await fetch(apiUrl(`/api/admin/bots/${bot._id}?tenantId=${encodeURIComponent(targetId)}&tenantDbName=${encodeURIComponent(targetDb)}`), {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
+          "x-session-id": sessionId
+        },
+        body: JSON.stringify({
+          enableTicketing: nextTicketing,
+          botUIConfigs: {
+            ...(bot.botUIConfigs || {}),
+            enableTicketing: nextTicketing
+          }
+        })
+      });
+      if (res.ok) {
+        showToast(`Chatbot "${bot.name || bot.botName}" ticketing is now ${nextTicketing ? "Enabled" : "Disabled"}.`);
+        fetchTenantBots();
+      } else {
+        showToast("Failed to update bot ticketing status.", "error");
+      }
+    } catch (err) {
+      showToast("Failed to update bot ticketing status.", "error");
     } finally {
       setTogglingBotId(null);
     }
@@ -337,8 +388,12 @@ export default function TenantsList({
     setConfirmModal(prev => ({ ...prev, isLoading: true }));
     const targetId = activeTenant?._id;
     const targetDb = activeTenant?.tenantDbName || "";
+    const sessionId = localStorage.getItem("iso_session_id") || "";
     try {
-      const res = await fetch(`/api/admin/bots/${botId}?tenantId=${encodeURIComponent(targetId)}&tenantDbName=${encodeURIComponent(targetDb)}`, { method: "DELETE" });
+      const res = await fetch(apiUrl(`/api/admin/bots/${botId}?tenantId=${encodeURIComponent(targetId)}&tenantDbName=${encodeURIComponent(targetDb)}`), { 
+        method: "DELETE",
+        headers: { "x-session-id": sessionId }
+      });
       if (res.ok) {
         showToast("Chatbot deleted successfully.");
         setConfirmModal(prev => ({ ...prev, isOpen: false, isLoading: false }));
@@ -701,6 +756,16 @@ export default function TenantsList({
                   </th>
 
                   <th 
+                    onClick={() => handleBotSort("enableTicketing")}
+                    className="py-2.5 text-center cursor-pointer hover:text-iso-primary transition-colors select-none"
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      <span>Ticketing</span>
+                      {renderSortIcon(botSortField, "enableTicketing", botSortAsc)}
+                    </div>
+                  </th>
+
+                  <th 
                     onClick={() => handleBotSort("createdAt")}
                     className="py-2.5 cursor-pointer hover:text-iso-primary transition-colors select-none"
                   >
@@ -726,7 +791,7 @@ export default function TenantsList({
               <tbody>
                 {isBotsLoading ? (
                   <tr>
-                    <td colSpan="8" className="py-12 text-center text-iso-textMuted">
+                    <td colSpan="9" className="py-12 text-center text-iso-textMuted">
                       <div className="flex items-center justify-center gap-2">
                         <Loader2 size={16} className="animate-spin text-iso-accent" />
                         <span className="font-mono text-xs">Loading chatbots...</span>
@@ -735,7 +800,7 @@ export default function TenantsList({
                   </tr>
                 ) : filteredAndSortedBots.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="py-10 text-center text-iso-textMuted italic bg-iso-bgSecondary/10">
+                    <td colSpan="9" className="py-10 text-center text-iso-textMuted italic bg-iso-bgSecondary/10">
                       {botSearch ? "No chatbots match your search query." : "No chatbots configured for this tenant. Click 'Create Chatbot' to add one."}
                     </td>
                   </tr>
@@ -743,6 +808,7 @@ export default function TenantsList({
                   paginatedBots.map(b => {
                     const botTheme = b.botUIConfigs?.botThemeColor || "#00306D";
                     const formsCount = (b.customForms || []).length;
+                    const isTicketingOn = b.enableTicketing !== false && (b.botUIConfigs?.enableTicketing !== false);
                     return (
                       <tr key={b._id} className="border-b border-iso-border/40 hover:bg-iso-bgSecondary/20 transition-colors">
                         
@@ -772,6 +838,23 @@ export default function TenantsList({
                           <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-iso-bgSecondary border border-iso-border text-iso-primary">
                             {formsCount} {formsCount === 1 ? "form" : "forms"}
                           </span>
+                        </td>
+
+                        <td className="py-3 text-center">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleBotTicketing(b)}
+                            disabled={togglingBotId === b._id}
+                            title="Click to toggle ticketing feature for this chatbot"
+                            className={`px-2.5 py-1 rounded-sm text-[9px] font-mono font-bold border transition-all cursor-pointer inline-flex items-center gap-1 ${
+                              isTicketingOn
+                                ? "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
+                                : "bg-slate-100 text-slate-500 border-slate-300 hover:bg-slate-200"
+                            }`}
+                          >
+                            <Ticket size={10} className={isTicketingOn ? "text-blue-600" : "text-slate-400"} />
+                            <span>{isTicketingOn ? "TICKETS ON" : "NO TICKETS"}</span>
+                          </button>
                         </td>
 
                         <td className="py-3 font-mono text-iso-textMuted text-[11px]">

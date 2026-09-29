@@ -17,7 +17,9 @@ export default function Sidebar({
   selectedTenant,
   showToast,
   onLogout,
-  onNavigate
+  onNavigate,
+  mobileOpen,
+  setMobileOpen
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   
@@ -267,15 +269,26 @@ export default function Sidebar({
 
   return (
     <>
-      <aside className={`h-full shrink-0 bg-iso-bgSecondary border-r border-iso-border flex flex-col z-20 select-none relative transition-all duration-300 ease-in-out ${
-        isCollapsed ? 'w-20' : 'w-64'
+      {/* Mobile Drawer Backdrop Overlay */}
+      {mobileOpen && (
+        <div 
+          onClick={() => setMobileOpen && setMobileOpen(false)}
+          className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 md:hidden animate-in fade-in duration-200"
+          aria-label="Close navigation overlay"
+        />
+      )}
+
+      <aside className={`h-full shrink-0 bg-iso-bgSecondary border-r border-iso-border flex flex-col z-50 md:z-20 select-none transition-all duration-300 ease-in-out fixed md:relative inset-y-0 left-0 shadow-2xl md:shadow-none ${
+        mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+      } ${
+        isCollapsed ? 'w-20' : 'w-64 max-w-[85vw]'
       }`}>
         
-        {/* Brand Header with Tenant Name in big font on the right of Logo taking full width */}
+        {/* Brand Header with Big Icon/Logo (No text name) */}
         <div className="px-3.5 py-3 border-b border-iso-border flex items-center justify-between bg-iso-bgSecondary/30 overflow-hidden h-[76px] shrink-0 w-full">
           <div className="flex items-center overflow-hidden min-w-0 flex-1">
             {isCollapsed ? (
-              /* Collapsed view: Clean unboxed square icon centered */
+              /* Collapsed view: Clean square icon centered */
               <div className="flex items-center justify-center w-full shrink-0">
                 <img 
                   src={logoSmall || '/isomorphic-icon.png'} 
@@ -285,29 +298,39 @@ export default function Sidebar({
                 />
               </div>
             ) : (
-              /* Expanded view: Logo on Left + Big Tenant Name on Right taking full header width */
-              <div className="flex items-center gap-3 overflow-hidden min-w-0 flex-1 pr-1">
+              /* Expanded view: Big Logo/Icon only taking header space */
+              <div className="flex items-center overflow-hidden min-w-0 flex-1 pr-1">
                 <img 
-                  src={logoSmall || logoBig || '/isomorphic-icon.png'} 
+                  src={logoBig || logoSmall || '/isomorphic-logo.png'} 
                   alt={tenantDisplayName} 
-                  className="w-9 h-9 object-contain shrink-0 select-none" 
-                  onError={(e) => { e.target.src = '/isomorphic-icon.png'; }} 
+                  className="max-h-12 max-w-[180px] object-contain select-none" 
+                  onError={(e) => { e.target.src = '/isomorphic-logo.png'; }} 
                 />
-                
-                <span className="font-bold text-lg font-serif text-iso-primary leading-tight truncate flex-1 min-w-0 tracking-tight" title={tenantDisplayName}>
-                  {tenantDisplayName}
-                </span>
               </div>
             )}
           </div>
           
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1 text-iso-textMuted hover:text-iso-primary rounded hover:bg-iso-bg border border-iso-border/30 transition-colors shrink-0 cursor-pointer ml-1"
-            title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-          >
-            {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-          </button>
+          <div className="flex items-center gap-1 shrink-0 ml-1">
+            {/* Desktop Collapse/Expand Toggle */}
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="hidden md:flex p-1 text-iso-textMuted hover:text-iso-primary rounded hover:bg-iso-bg border border-iso-border/30 transition-colors shrink-0 cursor-pointer"
+              title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+              aria-label={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+            >
+              {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+            </button>
+
+            {/* Mobile Close Drawer Button */}
+            <button
+              type="button"
+              onClick={() => setMobileOpen && setMobileOpen(false)}
+              className="md:hidden p-1.5 text-iso-textMuted hover:text-iso-primary rounded hover:bg-iso-bg border border-iso-border/30 transition-colors shrink-0 cursor-pointer"
+              aria-label="Close navigation drawer"
+            >
+              <X size={16} />
+            </button>
+          </div>
         </div>
 
         {/* Pages Navigation Links */}
@@ -318,7 +341,10 @@ export default function Sidebar({
             return (
               <button
                 key={route.path}
-                onClick={() => setActiveRoutePath(route.path)}
+                onClick={() => {
+                  setActiveRoutePath(route.path);
+                  if (setMobileOpen) setMobileOpen(false);
+                }}
                 className={`flex items-center rounded-sm text-xs font-semibold transition-all duration-300 ease-in-out overflow-hidden cursor-pointer ${
                   isCollapsed 
                     ? 'px-3 py-2.5 justify-center' 
@@ -360,7 +386,7 @@ export default function Sidebar({
                 ref={profileRef}
                 className={`absolute bg-iso-cardBg border border-iso-border rounded-sm shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150 ${
                   isCollapsed 
-                    ? 'left-full ml-3 bottom-0 w-76' 
+                    ? 'bottom-full mb-2 left-2 right-2 md:left-full md:ml-3 md:bottom-0 md:w-76' 
                     : 'bottom-full mb-2 left-2 right-2'
                 }`}
               >

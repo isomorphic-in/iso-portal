@@ -4,6 +4,7 @@ import {
   CheckCircle, Code, Save, Loader2, Bot as BotIcon, Eye,
   Sparkles, Globe, RefreshCw
 } from "lucide-react";
+import { apiUrl } from "../../../config/api";
 
 const TIMEZONE_OPTIONS = [
   "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
@@ -142,13 +143,17 @@ export default function TenantModal({
     }
 
     const method = payload.id ? "PUT" : "POST";
-    const url = payload.id ? `/api/admin/tenants/${payload.id}` : "/api/admin/tenants";
+    const endpoint = payload.id ? `/api/admin/tenants/${payload.id}` : "/api/admin/tenants";
 
     setSaving(true);
     try {
-      const res = await fetch(url, {
+      const sessionId = localStorage.getItem("iso_session_id") || "";
+      const res = await fetch(apiUrl(endpoint), {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-session-id": sessionId
+        },
         body: JSON.stringify({
           name: finalName,
           tenantName: finalName,

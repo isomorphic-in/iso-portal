@@ -120,6 +120,14 @@ export default function Login({ onLoginSuccess, showToast }) {
 
   // Initial load, Reset Token check, and URL listener
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const pathname = window.location.pathname;
+      if (pathname === '/' || pathname === '/login' || pathname === '/login/') {
+        const query = window.location.search;
+        window.history.replaceState({}, '', `/login/admin${query}`);
+      }
+    }
+
     const currentSlug = resolveTenantSlug();
     setTenantSlug(currentSlug);
     if (currentSlug) {

@@ -8,6 +8,7 @@ import {
   ArrowUp, ArrowDown, CalendarRange, Globe, Layers, Radio, Laptop
 } from 'lucide-react';
 import CustomDropdown from '../../components/CustomDropdown';
+import { apiUrl } from '../../config/api';
 
 function escapeHTML(str) {
   return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -193,8 +194,11 @@ export default function ConversationHistory({
         setSelectedTenantId(currentUser.tenantId);
       }
     } else {
+      const sessionId = localStorage.getItem('iso_session_id') || '';
       const q = (!isGlobalUser && currentUser?.tenantId) ? `?tenantId=${encodeURIComponent(currentUser.tenantId)}` : '';
-      fetch(`/api/admin/tenants${q}`)
+      fetch(apiUrl(`/api/admin/tenants${q}`), {
+        headers: { 'x-session-id': sessionId }
+      })
         .then(r => r.json())
         .then(data => {
           if (Array.isArray(data)) {
@@ -234,9 +238,12 @@ export default function ConversationHistory({
   const fetchBotsForTenant = async (tId) => {
     setLoadingBots(true);
     try {
+      const sessionId = localStorage.getItem('iso_session_id') || '';
       const curT = tenantList.find(t => (t.tenantId === tId || t.code === tId));
       const targetDb = curT?.tenantDbName || `iso_${tId}`;
-      const res = await fetch(`/api/admin/bots?tenantId=${encodeURIComponent(tId)}&tenantDbName=${encodeURIComponent(targetDb)}`);
+      const res = await fetch(apiUrl(`/api/admin/bots?tenantId=${encodeURIComponent(tId)}&tenantDbName=${encodeURIComponent(targetDb)}`), {
+        headers: { 'x-session-id': sessionId }
+      });
       const data = await res.json();
       if (Array.isArray(data)) {
         setAvailableBots(data);
@@ -339,7 +346,10 @@ export default function ConversationHistory({
   const fetchSessionThread = async (sId) => {
     setLoadingMessages(true);
     try {
-      const res = await fetch(`/api/admin/conversations/${encodeURIComponent(sId)}`);
+      const sessionId = localStorage.getItem('iso_session_id') || '';
+      const res = await fetch(apiUrl(`/api/admin/conversations/${encodeURIComponent(sId)}`), {
+        headers: { 'x-session-id': sessionId }
+      });
       const json = await res.json();
       if (json.success && json.data) {
         setSessionMessages(json.data.messages || []);
@@ -358,8 +368,10 @@ export default function ConversationHistory({
   const handleDeleteSession = async (sId) => {
     if (!window.confirm(`Are you sure you want to permanently delete session "${sId}" and all its turns?`)) return;
     try {
-      const res = await fetch(`/api/admin/conversations/${encodeURIComponent(sId)}`, {
-        method: 'DELETE'
+      const sessionId = localStorage.getItem('iso_session_id') || '';
+      const res = await fetch(apiUrl(`/api/admin/conversations/${encodeURIComponent(sId)}`), {
+        method: 'DELETE',
+        headers: { 'x-session-id': sessionId }
       });
       const json = await res.json();
       if (json.success) {

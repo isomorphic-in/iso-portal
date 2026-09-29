@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Menu as MenuIcon } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import Toast from './components/Toast';
 import Login from './components/Login';
@@ -64,14 +65,22 @@ export default function App() {
   const [bots, setBots] = useState([]);
   const [selectedBot, setSelectedBot] = useState(null);
   const [toast, setToast] = useState(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   // Inactivity & Activity Tracking
   const lastActivityRef = useRef(Date.now());
   const hasRecentActivityRef = useRef(false);
+  const toastTimeoutRef = useRef(null);
 
   const showToast = (message, type = 'success') => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
     setToast({ message, type });
-    setTimeout(() => setToast(null), 5000);
+    toastTimeoutRef.current = setTimeout(() => {
+      setToast(null);
+      toastTimeoutRef.current = null;
+    }, 5000);
   };
 
   // Auth Handlers
@@ -124,7 +133,25 @@ export default function App() {
     } else if (reason === 'tenant_switch') {
       showToast(explicitTenant ? `Switched to organization "${explicitTenant}". Please log in.` : 'Switched organization. Please log in.', 'info');
     }
+
+    if (!explicitTenant && typeof window !== 'undefined') {
+      const pathname = window.location.pathname;
+      if (pathname === '/' || pathname === '/login' || pathname === '/login/') {
+        window.history.replaceState({}, '', `/login/admin${window.location.search}`);
+      }
+    }
   };
+
+  // Redirect base URL without /login/tenantId to /login/admin
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const pathname = window.location.pathname;
+      if (pathname === '/' || pathname === '/login' || pathname === '/login/') {
+        const query = window.location.search;
+        window.history.replaceState({}, '', `/login/admin${query}`);
+      }
+    }
+  }, []);
 
   // Check initial session validity on portal startup and enforce tenant isolation
   useEffect(() => {
@@ -522,7 +549,7 @@ export default function App() {
       {/* Toast Alert */}
       <Toast toast={toast} />
 
-      {/* Dynamic Sidebar */}
+      {/* Dynamic Sidebar (Desktop collapsible + Mobile drawer overlay) */}
       <Sidebar
         selectedPortal={selectedPortal}
         setSelectedPortal={handlePortalSwitch}
@@ -535,11 +562,37 @@ export default function App() {
         showToast={showToast}
         onLogout={() => handleLogout('manual')}
         onNavigate={handleNavigate}
+        mobileOpen={mobileOpen}
+        setMobileOpen={setMobileOpen}
       />
 
       {/* Content Viewport */}
       <main className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
-        <div className="flex-1 p-6 md:p-8 min-h-0 flex flex-col overflow-y-auto">
+        
+        {/* Mobile Top Header (Visible only on < md screens) */}
+        <header className="md:hidden h-13 border-b border-iso-border bg-iso-bgSecondary/80 px-3.5 flex items-center justify-between shrink-0 z-10">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-2">
+            <button
+              type="button"
+              onClick={() => setMobileOpen(true)}
+              className="p-1.5 rounded-sm border border-iso-border bg-iso-cardBg text-iso-text hover:text-iso-primary cursor-pointer transition-colors shrink-0"
+              aria-label="Open Navigation Menu"
+            >
+              <MenuIcon size={18} />
+            </button>
+            <span className="font-serif font-bold text-sm text-iso-primary truncate">
+              {selectedTenant?.tenantConfig?.instituteName || selectedTenant?.tenantName || currentUser?.tenantName || 'isomorphic AI'}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="text-[10px] font-mono font-bold text-iso-primary px-2 py-0.5 bg-iso-cardBg rounded border border-iso-border">
+              {activeRoute?.label || activeRoutePath}
+            </span>
+          </div>
+        </header>
+
+        <div className="flex-1 p-3.5 sm:p-5 md:p-8 min-h-0 flex flex-col overflow-y-auto">
           {activeRoute ? (
             React.createElement(activeRoute.component, {
               currentUser,

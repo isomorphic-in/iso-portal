@@ -4,6 +4,7 @@ import {
 } from "lucide-react";
 import ConfirmModal from "../../../components/ConfirmModal";
 import TablePagination from "../../../components/TablePagination";
+import { apiUrl } from "../../../config/api";
 
 export default function TenantRolesAndUsersModal({
   isOpen,
@@ -60,9 +61,12 @@ export default function TenantRolesAndUsersModal({
   const loadData = async () => {
     setLoading(true);
     try {
+      const sessionId = localStorage.getItem("iso_session_id") || "";
       const [rolesRes, usersRes] = await Promise.all([
-        fetch("/api/admin/roles"),
-        fetch(`/api/admin/tenant-users?tenantId=${encodeURIComponent(targetTenantId)}&tenantDbName=${encodeURIComponent(targetDb)}`)
+        fetch(apiUrl("/api/admin/roles"), { headers: { "x-session-id": sessionId } }),
+        fetch(apiUrl(`/api/admin/tenant-users?tenantId=${encodeURIComponent(targetTenantId)}&tenantDbName=${encodeURIComponent(targetDb)}`), {
+          headers: { "x-session-id": sessionId }
+        })
       ]);
       const rolesData = await rolesRes.json();
       const usersData = await usersRes.json();
@@ -92,9 +96,13 @@ export default function TenantRolesAndUsersModal({
   const handleSaveAssignedRoles = async () => {
     setSavingRoles(true);
     try {
-      const res = await fetch(`/api/admin/tenants/${activeTenant._id || activeTenant.tenantId}`, {
+      const sessionId = localStorage.getItem("iso_session_id") || "";
+      const res = await fetch(apiUrl(`/api/admin/tenants/${activeTenant._id || activeTenant.tenantId}`), {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-session-id": sessionId
+        },
         body: JSON.stringify({
           ...activeTenant,
           assignedRoles
@@ -152,14 +160,18 @@ export default function TenantRolesAndUsersModal({
 
     setSavingUser(true);
     try {
+      const sessionId = localStorage.getItem("iso_session_id") || "";
       const method = editingUser ? "PUT" : "POST";
-      const url = editingUser
+      const endpoint = editingUser
         ? `/api/admin/tenant-users/${editingUser._id || editingUser.username}?tenantId=${encodeURIComponent(targetTenantId)}&tenantDbName=${encodeURIComponent(targetDb)}`
         : `/api/admin/tenant-users?tenantId=${encodeURIComponent(targetTenantId)}&tenantDbName=${encodeURIComponent(targetDb)}`;
 
-      const res = await fetch(url, {
+      const res = await fetch(apiUrl(endpoint), {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-session-id": sessionId
+        },
         body: JSON.stringify(userFormData)
       });
       const data = await res.json();
@@ -191,8 +203,10 @@ export default function TenantRolesAndUsersModal({
   const performDeleteUser = async (id) => {
     setConfirmModal(prev => ({ ...prev, isLoading: true }));
     try {
-      const res = await fetch(`/api/admin/tenant-users/${id}?tenantId=${encodeURIComponent(targetTenantId)}&tenantDbName=${encodeURIComponent(targetDb)}`, {
-        method: "DELETE"
+      const sessionId = localStorage.getItem("iso_session_id") || "";
+      const res = await fetch(apiUrl(`/api/admin/tenant-users/${id}?tenantId=${encodeURIComponent(targetTenantId)}&tenantDbName=${encodeURIComponent(targetDb)}`), {
+        method: "DELETE",
+        headers: { "x-session-id": sessionId }
       });
       if (res.ok) {
         showToast("User deleted.");
