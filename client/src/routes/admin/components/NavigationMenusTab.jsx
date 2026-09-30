@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { 
   Building2, Bot, BarChart3, Database, Shield, Settings, 
   Plus, Trash2, Edit3, Check, X, Loader2, Save, Eye, EyeOff,
-  Search, ArrowUpDown, ArrowUp, ArrowDown, Zap, Ticket, Activity
+  Search, ArrowUpDown, ArrowUp, ArrowDown, Zap, Ticket, Activity, FileText
 } from "lucide-react";
 import ConfirmModal from "../../../components/ConfirmModal";
 
@@ -242,6 +242,7 @@ export default function NavigationMenusTab({ showToast }) {
   const getIcon = (iconName) => {
     switch (iconName) {
       case "Building2": return <Building2 size={15} className="text-iso-primary" />;
+      case "FileText": return <FileText size={15} className="text-teal-600" />;
       case "BarChart3": return <BarChart3 size={15} className="text-emerald-600" />;
       case "Zap": return <Zap size={15} className="text-amber-500" />;
       case "Activity": return <Activity size={15} className="text-blue-500" />;
@@ -497,6 +498,7 @@ export default function NavigationMenusTab({ showToast }) {
                   >
                     <option value="Ticket">Ticket (Grievances & Tickets)</option>
                     <option value="Building2">Building2 (Tenants)</option>
+                    <option value="FileText">FileText (Contract Summary)</option>
                     <option value="BarChart3">BarChart3 (Analytics)</option>
                     <option value="Zap">Zap (Bot Performance)</option>
                     <option value="Activity">Activity (Monitoring)</option>

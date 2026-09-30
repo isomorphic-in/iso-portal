@@ -417,6 +417,7 @@ export default function App() {
 
     // Check allowedMenus with alias fallbacks
     if (allowed.includes(path)) return true;
+    if (path === 'contract_summary' && (allowed.length === 0 || allowed.includes('contract_summary') || allowed.includes('contractSummary') || allowed.includes('contracts') || allowed.includes('contract') || allowed.includes('contract_overview'))) return true;
     if (path === 'grievances' && isGrievanceEnabled && (allowed.length === 0 || allowed.includes('grievances') || allowed.includes('tickets') || allowed.includes('grievance') || allowed.includes('complaints'))) return true;
     if (path === 'ingestion' && (allowed.length === 0 || allowed.includes('ingestion') || allowed.includes('knowledge') || allowed.includes('ingestionManager') || allowed.includes('data') || allowed.includes('crawler') || allowed.includes('overview') || allowed.includes('documents'))) return true;
     if (path === 'analytics' && (allowed.length === 0 || allowed.includes('analytics') || allowed.includes('botAnalytics') || allowed.includes('overview'))) return true;
@@ -426,7 +427,7 @@ export default function App() {
     if (path === 'playground' && (allowed.length === 0 || allowed.includes('chat') || allowed.includes('playground'))) return true;
 
     // Fallback: grant standard tenant features
-    return [isGrievanceEnabled ? 'grievances' : null, 'analytics', 'performance', 'ingestion', 'conversations', 'chat'].filter(Boolean).includes(path);
+    return ['contract_summary', isGrievanceEnabled ? 'grievances' : null, 'analytics', 'performance', 'ingestion', 'conversations', 'chat'].filter(Boolean).includes(path);
   };
 
   const filteredAdminRoutes = adminRoutes.filter(r => isPathAllowed(r.path));
